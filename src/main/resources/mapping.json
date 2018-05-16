@@ -1,0 +1,22 @@
+{
+	"name":"${mapping.name!"Unknow"}",
+	"tableMaps":[
+		<#list mapping.tableMaps as tm>
+		{
+			"it": "${tm.it}",
+			"ot": "${tm.ot}",
+			"columnMaps": [
+				<#list tm.columnMaps as tc>
+				{
+					"ic": "${tc.ic}",
+					"oc": "${tc.oc}",
+					"pt": "${tc.pt}",
+					"whereIc": ${tc.whereIc?string("true","false")},
+					"whereOc": ${tc.whereOc?string("true","false")}
+				}${tc_has_next?string(",","")}
+				</#list>
+			]
+		}${tm_has_next?string(",","")}
+		</#list>
+	]
+}
