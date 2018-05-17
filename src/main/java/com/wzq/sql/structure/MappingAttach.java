@@ -20,7 +20,7 @@ public class MappingAttach implements Attach {
      * 是否同步全部表
      */
     private boolean syncAllIts = true;
-    /**
+     /**
      * 是否同步全部列
      */
     private boolean syncAllIcs = true;
@@ -29,17 +29,9 @@ public class MappingAttach implements Attach {
      */
     private boolean coverValue = false;
     /**
-     * Mapping名称集合
-     */
-    private String[] mappingNames;
-    /**
-     * 表名称集合
-     */
-    private String[] itNames;
-    /**
      * 表结构集合
      */
-    private List<TableStructure> tableStructures;
+    private List<MappingStructure> mappingStructures;
     /**
      * 覆盖操作 key:where过滤
      */
@@ -77,22 +69,6 @@ public class MappingAttach implements Attach {
         this.coverValue = coverValue;
     }
 
-    public String[] getItNames() {
-        return itNames;
-    }
-
-    public void setItNames(String[] itNames) {
-        this.itNames = itNames;
-    }
-
-    public List<TableStructure> getTableStructures() {
-        return tableStructures;
-    }
-
-    public void setTableStructures(List<TableStructure> tableStructures) {
-        this.tableStructures = tableStructures;
-    }
-
     public List<CoverOpreater> getCoverOpreaters() {
         return coverOpreaters;
     }
@@ -109,15 +85,15 @@ public class MappingAttach implements Attach {
         this.syncAllMappings = syncAllMappings;
     }
 
-    public String[] getMappingNames() {
-        return mappingNames;
-    }
-
-    public void setMappingNames(String[] mappingNames) {
-        this.mappingNames = mappingNames;
-    }
-
     public static MappingAttach getInstance() {
         return MAPPING_ATTACH;
+    }
+
+    public List<MappingStructure> getMappingStructures() {
+        return mappingStructures;
+    }
+
+    public void setMappingStructures(List<MappingStructure> mappingStructures) {
+        this.mappingStructures = mappingStructures;
     }
 }

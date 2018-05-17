@@ -1,5 +1,6 @@
 package com.wzq.manager;
 
+import com.wzq.able.Standardable;
 import com.wzq.core.generator.Generator;
 import com.wzq.mapping.Mapping;
 
@@ -8,7 +9,7 @@ import java.util.List;
 /**
  * Mapping管理器
  */
-public interface MappingManager {
+public interface MappingManager extends Standardable {
     /**
      * Mapping默认方向的生成
      * @param mappingName
@@ -25,6 +26,5 @@ public interface MappingManager {
 
     String[] getAllMappingNames();
 
-    void setMappings(List<Mapping> mappings);
     List<Mapping> getMappings();
 }

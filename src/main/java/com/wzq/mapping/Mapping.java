@@ -3,6 +3,7 @@ package com.wzq.mapping;
 import com.alibaba.fastjson.JSONObject;
 import com.wzq.able.SwapBothSidesAble;
 import com.wzq.sql.structure.ColumnStructure;
+import com.wzq.sql.structure.MappingStructure;
 import com.wzq.sql.structure.TableStructure;
 import com.wzq.util.KeyValue;
 
@@ -433,49 +434,38 @@ public class Mapping implements SwapBothSidesAble, Cloneable {
         return oWheretColumns;
     }
 
-    public TableStructure getItStructure(String itName) {
-        if (validateTableName(itName)) {
-            List<TableMapping> tms = this.findByItName(itName);
-            TableStructure ts = getTableStructure(itName, tms, true);
-            if (ts != null) return ts;
-        }
+    public MappingStructure getIMappingStructure(MappingStructure omStructure) {
+        // TODO
         return null;
     }
 
-    public TableStructure getOtStructure(String otName) {
-        if (validateTableName(otName)) {
-            List<TableMapping> tms = this.findByOtName(otName);
-            TableStructure ts = getTableStructure(otName, tms, true);
-            if (ts != null) return ts;
-        }
+    public MappingStructure getOMappingStructure(MappingStructure imStructure) {
+        // TODO
         return null;
     }
 
-    private TableStructure getTableStructure(String tName, List<TableMapping> tms, boolean iot) {
-        if (tms != null && tms.size() > 0) {
-            TableStructure ts = new TableStructure(tName);
-            Map<String, String> cs = new HashMap<String, String>();
-            for (TableMapping tm : tms) {
-                List<ColumnMapping> cms = tm.getColumnMaps();
-                for (ColumnMapping cm : cms) {
-                    if (iot) {
-                        cs.put(cm.getIc(), cm.getPt());
-                    } else {
-                        cs.put(cm.getOc(), cm.getPt());
-                    }
-                }
-            }
-            Set<Map.Entry<String, String>> entries = cs.entrySet();
-            List<ColumnStructure> css = new ArrayList<ColumnStructure>();
-            for (Map.Entry<String, String> entry : entries) {
-                css.add(new ColumnStructure(entry.getKey(), entry.getValue(), null));
-            }
-            ts.setColumns(css);
-            if (ts.isValidate()) {
-                return ts;
+    public MappingStructure getIMappingStructure() {
+        return getStructure(true);
+    }
+
+    public MappingStructure getOMappingStructure() {
+        return getStructure(false);
+    }
+
+    private MappingStructure getStructure(boolean iot) {
+        MappingStructure ms = new MappingStructure();
+        ms.setName(name);
+        List<TableStructure> tss = new ArrayList<TableStructure>();
+        for (TableMapping tm : tableMaps) {
+            if (iot) {
+                tss.add(tm.getIStructure());
+            } else {
+                tss.add(tm.getOStructure());
             }
         }
-        return null;
+        ms.setTables(tss);
+        ms.standardize();
+        return ms;
     }
 
     private static boolean validateTableName(String name) {

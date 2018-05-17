@@ -1,6 +1,8 @@
 package com.wzq.mapping;
 
 import com.wzq.able.SwapBothSidesAble;
+import com.wzq.sql.structure.ColumnStructure;
+import com.wzq.sql.value.PlaceholderValue;
 
 /**
  * 字段关系映射
@@ -106,5 +108,15 @@ public class ColumnMapping implements SwapBothSidesAble,Cloneable {
         cm.whereOc = whereOc;
         cm.whereIc = whereIc;
         return cm;
+    }
+
+    public ColumnStructure getIStructure() {
+        return getStructure(true);
+    }
+    public ColumnStructure getOStructure() {
+        return getStructure(false);
+    }
+    public ColumnStructure getStructure(boolean iot) {
+        return new ColumnStructure(iot ? ic : oc, pt, PlaceholderValue.getInstance());
     }
 }

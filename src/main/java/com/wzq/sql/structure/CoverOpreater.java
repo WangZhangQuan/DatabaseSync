@@ -4,6 +4,10 @@ import java.util.Set;
 
 public class CoverOpreater {
     /**
+     * mapping名称
+     */
+    private String mappingName;
+    /**
      * 己方表名
      */
     private String itName;
@@ -31,6 +35,14 @@ public class CoverOpreater {
         this.itName = itName;
     }
 
+    public CoverOpreater(String mappingName, String itName, Set<ColumnStructure> whereColumns, Set<ColumnStructure> valueColumns) {
+
+        this.mappingName = mappingName;
+        this.itName = itName;
+        this.whereColumns = whereColumns;
+        this.valueColumns = valueColumns;
+    }
+
     public String getItName() {
         return itName;
     }
@@ -53,5 +65,13 @@ public class CoverOpreater {
 
     public void setValueColumns(Set<ColumnStructure> valueColumns) {
         this.valueColumns = valueColumns;
+    }
+
+    public String getMappingName() {
+        return mappingName;
+    }
+
+    public void setMappingName(String mappingName) {
+        this.mappingName = mappingName;
     }
 }

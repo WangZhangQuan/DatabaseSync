@@ -3,9 +3,11 @@ package com.wzq.template;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.wzq.SyncManager;
+import com.wzq.core.structure.Structure;
 import com.wzq.generator.MappingSqlGenerator;
 import com.wzq.manager.impl.SimpleMappingManager;
 import com.wzq.mapping.Mapping;
+import com.wzq.sql.structure.MappingStructure;
 import com.wzq.sql.value.PlaceholderValue;
 import com.wzq.util.FreemarkerUtil;
 import com.wzq.util.KeyValue;
@@ -63,7 +65,9 @@ public class TemplateMain {
 //        statementDeParser.visit(update);
 //
 //        System.out.println(statementDeParser.getBuffer());
-        SimpleMappingManager smm = new SimpleMappingManager(Arrays.asList(new Mapping[]{
+        SimpleMappingManager smm = new SimpleMappingManager();
+        smm.getMappings().clear();
+        smm.getMappings().addAll(Arrays.asList(new Mapping[]{
                 mx
         }));
         MappingSqlGenerator u8_订单 = smm.getGenerator("u8_订单");
@@ -103,8 +107,22 @@ public class TemplateMain {
         System.out.println(csql);
         String[] crsql = u8_订单.generateReverseCreateTableSql(itName, u8_订单.getMapping().getAllItColumns(itName, otNames), null, otNames);
         System.out.println(JSON.toJSON(crsql).toString());
+
+        MappingStructure iMappingStructure = mapping.getIMappingStructure();
+        MappingStructure oMappingStructure = mapping.getOMappingStructure();
+        KeyValue<Structure, Structure> sskv = iMappingStructure.differenceSet(oMappingStructure);
+        MappingStructure msc = (MappingStructure) iMappingStructure.clone();
+        msc.getTables().get(0).getColumns().get(0).setValue(5);
+        msc.getTables().get(0).getColumns().get(1).setValue(6);
+        KeyValue<Structure, Structure> sskvc = iMappingStructure.differenceSet(msc);
+        iMappingStructure.valueOf(msc);
+        oMappingStructure.valueOf(iMappingStructure);
+        Structure intersection = oMappingStructure.intersection(msc);
+        Structure intersection1 = msc.intersection(iMappingStructure);
         long t2 = System.currentTimeMillis();
 
         System.out.println("开始：" + t1 + "，结束：" + t2 + "，耗时：" + (t2 - t1));
+
+        System.out.printf("ssss");
     }
 }
