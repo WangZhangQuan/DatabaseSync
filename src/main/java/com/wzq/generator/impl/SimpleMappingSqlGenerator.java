@@ -34,7 +34,7 @@ import net.sf.jsqlparser.util.deparser.StatementDeParser;
 import java.lang.reflect.Array;
 import java.util.*;
 
-public class SimpleMappingSqlGenerator implements MappingSqlGenerator {
+public class SimpleMappingSqlGenerator extends MappingSqlGenerator {
 
     public static final String DROP_TABLE_TYPE = "TABLE";
 

@@ -2,26 +2,15 @@ package com.wzq.template;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.wzq.SyncManager;
 import com.wzq.generator.MappingSqlGenerator;
-import com.wzq.generator.impl.SimpleMappingSqlGenerator;
 import com.wzq.manager.impl.SimpleMappingManager;
-import com.wzq.mapping.ColumnMapping;
 import com.wzq.mapping.Mapping;
-import com.wzq.mapping.TableMapping;
 import com.wzq.sql.value.PlaceholderValue;
+import com.wzq.util.FreemarkerUtil;
 import com.wzq.util.KeyValue;
 import com.wzq.util.MapUtils;
 import freemarker.template.Configuration;
-import net.sf.jsqlparser.expression.*;
-import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
-import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
-import net.sf.jsqlparser.expression.operators.relational.InExpression;
-import net.sf.jsqlparser.expression.operators.relational.ItemsList;
-import net.sf.jsqlparser.schema.Column;
-import net.sf.jsqlparser.schema.Table;
-import net.sf.jsqlparser.statement.update.Update;
-import net.sf.jsqlparser.util.deparser.StatementDeParser;
-import net.sf.jsqlparser.util.deparser.UpdateDeParser;
 
 import java.io.*;
 import java.util.*;
@@ -77,7 +66,7 @@ public class TemplateMain {
         SimpleMappingManager smm = new SimpleMappingManager(Arrays.asList(new Mapping[]{
                 mx
         }));
-        MappingSqlGenerator u8_订单 = smm.getSqlGenerator("u8_订单");
+        MappingSqlGenerator u8_订单 = smm.getGenerator("u8_订单");
         String itName = "t_user";
         String[] otNames = new String[]{
                 "person",

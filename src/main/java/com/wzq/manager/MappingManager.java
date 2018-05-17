@@ -1,6 +1,6 @@
 package com.wzq.manager;
 
-import com.wzq.generator.MappingSqlGenerator;
+import com.wzq.core.generator.Generator;
 import com.wzq.mapping.Mapping;
 
 import java.util.List;
@@ -10,18 +10,20 @@ import java.util.List;
  */
 public interface MappingManager {
     /**
-     * Mapping默认方向的SQL生成
+     * Mapping默认方向的生成
      * @param mappingName
      * @return
      */
-    MappingSqlGenerator getSqlGenerator(String mappingName);
+    Generator getGenerator(String mappingName);
 
     /**
-     * Mapping反方向的SQL生成
+     * Mapping反方向的生成
      * @param mappingName
      * @return
      */
-    MappingSqlGenerator getReverseSqlGenerator(String mappingName);
+    Generator getReverseGenerator(String mappingName);
+
+    String[] getAllMappingNames();
 
     void setMappings(List<Mapping> mappings);
     List<Mapping> getMappings();

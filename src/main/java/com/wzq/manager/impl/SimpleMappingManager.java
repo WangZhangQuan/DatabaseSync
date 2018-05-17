@@ -6,7 +6,9 @@ import com.wzq.manager.MappingManager;
 import com.wzq.mapping.Mapping;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class SimpleMappingManager implements MappingManager {
 
@@ -16,11 +18,11 @@ public class SimpleMappingManager implements MappingManager {
 
     private List<Mapping> mappings;
 
-    public MappingSqlGenerator getSqlGenerator(String mappingName) {
+    public MappingSqlGenerator getGenerator(String mappingName) {
         return new SimpleMappingSqlGenerator(findMappingAndFusionByName(mappingName));
     }
 
-    public MappingSqlGenerator getReverseSqlGenerator(String mappingName) {
+    public MappingSqlGenerator getReverseGenerator(String mappingName) {
         return new SimpleMappingSqlGenerator(findMappingAndFusionByName(mappingName).generateSwapBothSides());
     }
 
@@ -47,6 +49,17 @@ public class SimpleMappingManager implements MappingManager {
     public Mapping findMappingAndFusionByName(String mappingName){
         List<Mapping> mappings = findMappingsByName(mappingName);
         return Mapping.fusionMappings(mappings.toArray(new Mapping[mappings.size()]));
+    }
+
+    public String[] getAllMappingNames() {
+        if (this.mappings != null && this.mappings.size() > 0) {
+            Set<String> names = new HashSet<String>();
+            for (Mapping mapping : mappings) {
+                names.add(mapping.getName());
+            }
+            return names.toArray(new String[names.size()]);
+        }
+        return new String[0];
     }
 
     public List<Mapping> getMappings() {

@@ -1,4 +1,4 @@
-package com.wzq.template;
+package com.wzq.util;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;

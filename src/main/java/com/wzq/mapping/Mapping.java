@@ -2,6 +2,8 @@ package com.wzq.mapping;
 
 import com.alibaba.fastjson.JSONObject;
 import com.wzq.able.SwapBothSidesAble;
+import com.wzq.sql.structure.ColumnStructure;
+import com.wzq.sql.structure.TableStructure;
 import com.wzq.util.KeyValue;
 
 import java.util.*;
@@ -309,6 +311,7 @@ public class Mapping implements SwapBothSidesAble, Cloneable {
 
     /**
      * 获取对面的字段名称
+     *
      * @param itName
      * @param itColumnNames
      * @param otNames
@@ -331,6 +334,7 @@ public class Mapping implements SwapBothSidesAble, Cloneable {
 
     /**
      * 获取对面的字段关系
+     *
      * @param itName
      * @param itColumnNames
      * @param otNames
@@ -353,6 +357,7 @@ public class Mapping implements SwapBothSidesAble, Cloneable {
 
     /**
      * 获取对面的字段名称 去重
+     *
      * @param itName
      * @param itColumnNames
      * @param otNames
@@ -368,6 +373,7 @@ public class Mapping implements SwapBothSidesAble, Cloneable {
 
     /**
      * 获取对面的过滤字段
+     *
      * @param itName
      * @param itWhereColumnNames
      * @param otNames
@@ -390,6 +396,7 @@ public class Mapping implements SwapBothSidesAble, Cloneable {
 
     /**
      * 获取对面的过滤字段
+     *
      * @param itName
      * @param itWhereColumnNames
      * @param otNames
@@ -412,6 +419,7 @@ public class Mapping implements SwapBothSidesAble, Cloneable {
 
     /**
      * 获取对面的过滤字段 去重
+     *
      * @param itName
      * @param itWhereColumnNames
      * @param otNames
@@ -423,6 +431,58 @@ public class Mapping implements SwapBothSidesAble, Cloneable {
             oWheretColumns.put(s, unique(oWheretColumns.get(s)));
         }
         return oWheretColumns;
+    }
+
+    public TableStructure getItStructure(String itName) {
+        if (validateTableName(itName)) {
+            List<TableMapping> tms = this.findByItName(itName);
+            TableStructure ts = getTableStructure(itName, tms, true);
+            if (ts != null) return ts;
+        }
+        return null;
+    }
+
+    public TableStructure getOtStructure(String otName) {
+        if (validateTableName(otName)) {
+            List<TableMapping> tms = this.findByOtName(otName);
+            TableStructure ts = getTableStructure(otName, tms, true);
+            if (ts != null) return ts;
+        }
+        return null;
+    }
+
+    private TableStructure getTableStructure(String tName, List<TableMapping> tms, boolean iot) {
+        if (tms != null && tms.size() > 0) {
+            TableStructure ts = new TableStructure(tName);
+            Map<String, String> cs = new HashMap<String, String>();
+            for (TableMapping tm : tms) {
+                List<ColumnMapping> cms = tm.getColumnMaps();
+                for (ColumnMapping cm : cms) {
+                    if (iot) {
+                        cs.put(cm.getIc(), cm.getPt());
+                    } else {
+                        cs.put(cm.getOc(), cm.getPt());
+                    }
+                }
+            }
+            Set<Map.Entry<String, String>> entries = cs.entrySet();
+            List<ColumnStructure> css = new ArrayList<ColumnStructure>();
+            for (Map.Entry<String, String> entry : entries) {
+                css.add(new ColumnStructure(entry.getKey(), entry.getValue(), null));
+            }
+            ts.setColumns(css);
+            if (ts.isValidate()) {
+                return ts;
+            }
+        }
+        return null;
+    }
+
+    private static boolean validateTableName(String name) {
+        if (name != null && !"".equals(name)) {
+            return true;
+        } else
+            return false;
     }
 
     private static String[] unique(String[] strs) {
