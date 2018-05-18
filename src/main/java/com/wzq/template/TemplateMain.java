@@ -121,6 +121,8 @@ public class TemplateMain {
         Structure intersection1 = msc.intersection(iMappingStructure);
         long t2 = System.currentTimeMillis();
 
+        MappingStructure iMappingStructure1 = mapping.getOMappingStructure((MappingStructure) intersection1);
+
         System.out.println("开始：" + t1 + "，结束：" + t2 + "，耗时：" + (t2 - t1));
 
         System.out.printf("ssss");

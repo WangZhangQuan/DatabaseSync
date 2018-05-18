@@ -1,5 +1,6 @@
 package com.wzq;
 
+import com.wzq.core.connector.Connector;
 import com.wzq.core.executor.SyncOpreatorExecutor;
 import com.wzq.core.sync.Sync;
 import com.wzq.core.sync.SyncOpreator;
@@ -13,17 +14,18 @@ public class SyncManager {
     private SyncOpreatorExecutor syncOpreatorExecutor = new SimpleSyncOpreatorExecutor();
     private static final SyncOpreator SYNC_OPREATOR = new SyncOpreator(0, 1, MappingAttach.getInstance());
     private MappingManager mappingManager;
+    private Connector connector;
 
     public void sync() {
-        sync.sync(SYNC_OPREATOR, syncOpreatorExecutor, mappingManager);
+        sync.sync(SYNC_OPREATOR, syncOpreatorExecutor, mappingManager, connector);
     }
 
     public void sync(SyncOpreator syncOpreator) {
-        sync.sync(syncOpreator, syncOpreatorExecutor, mappingManager);
+        sync.sync(syncOpreator, syncOpreatorExecutor, mappingManager, connector);
     }
 
     public void sync(SyncOpreator syncOpreator, MappingManager mappingManager) {
-        sync.sync(syncOpreator, syncOpreatorExecutor, mappingManager);
+        sync.sync(syncOpreator, syncOpreatorExecutor, mappingManager, connector);
     }
 
     public Sync getSync() {

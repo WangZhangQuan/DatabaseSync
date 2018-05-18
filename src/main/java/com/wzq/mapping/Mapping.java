@@ -435,13 +435,39 @@ public class Mapping implements SwapBothSidesAble, Cloneable {
     }
 
     public MappingStructure getIMappingStructure(MappingStructure omStructure) {
-        // TODO
-        return null;
+        return getMappingStructure(omStructure, true);
     }
 
     public MappingStructure getOMappingStructure(MappingStructure imStructure) {
-        // TODO
-        return null;
+        return getMappingStructure(imStructure, false);
+    }
+
+    private MappingStructure getMappingStructure(MappingStructure structure, boolean iot) {
+        MappingStructure ms = null;
+        if (name.equals(structure.getName())) {
+            ms = new MappingStructure();
+            ms.setName(name);
+            List<TableStructure> tss = structure.getTables();
+            List<TableStructure> tssx = new ArrayList<TableStructure>();
+            for (TableStructure ts : tss) {
+                List<TableMapping> tms = findByItName(ts.getName());
+                for (TableMapping tm : tms) {
+                    tssx.add(iot ? tm.getItStructure(ts) : tm.getOtStructure(ts));
+                }
+            }
+            ms.setTables(tssx);
+            ms.standardize();
+        }
+        return ms;
+    }
+
+
+    private boolean isValidate() {
+        if (tableMaps != null && tableMaps.size() > 0) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public MappingStructure getIMappingStructure() {
@@ -466,6 +492,17 @@ public class Mapping implements SwapBothSidesAble, Cloneable {
         ms.setTables(tss);
         ms.standardize();
         return ms;
+    }
+
+    public String[] getAllItNames() {
+        if (isValidate()) {
+            Set<String> tns = new HashSet<String>();
+            for (TableMapping tm : tableMaps) {
+                tns.add(tm.getIt());
+            }
+            return tns.toArray(new String[tns.size()]);
+        }
+        return new String[0];
     }
 
     private static boolean validateTableName(String name) {

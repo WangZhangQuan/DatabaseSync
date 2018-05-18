@@ -73,7 +73,6 @@ public class ColumnStructure implements Structure,Nameable {
         return new KeyValue<Structure, Structure>(cs, scsx);
     }
 
-    @Override
     public Structure intersection(Structure structure) {
         ColumnStructure scs = validateNecessaryUniformity(structure);
         if (equals(scs)) {
@@ -82,7 +81,6 @@ public class ColumnStructure implements Structure,Nameable {
         return null;
     }
 
-    @Override
     public void valueOf(Structure structure) {
         ColumnStructure scs = validateNecessaryUniformity(structure);
         if (name.equals(scs.name)) {
@@ -92,10 +90,13 @@ public class ColumnStructure implements Structure,Nameable {
     }
 
     private ColumnStructure validateNecessaryUniformity(Structure structure) {
+        return cast(structure);
+    }
+
+    public static ColumnStructure cast(Structure structure) {
         if (structure instanceof ColumnStructure) {
-            ColumnStructure s = (ColumnStructure) structure;
-            return s;
+            return (ColumnStructure) structure;
         }
-        throw new UnsupportedOperationException("Unsupport Structure differenceSet because type inconsistency: I:" + this.getClass().getName() + "，Con side:" + structure.getClass().getName());
+        throw new UnsupportedOperationException("Unsupport Structure differenceSet because type inconsistency: I:" + ColumnStructure.class.getName() + "，Con side:" + structure.getClass().getName());
     }
 }

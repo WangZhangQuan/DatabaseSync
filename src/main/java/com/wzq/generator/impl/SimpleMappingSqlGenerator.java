@@ -10,6 +10,7 @@ import com.wzq.sql.type.UnsupportSqlType;
 import com.wzq.sql.value.ArrayValue;
 import com.wzq.sql.value.PlaceholderValue;
 import com.wzq.sql.value.SqlExpressionValue;
+import com.wzq.util.ColumnComparator;
 import com.wzq.util.KeyValue;
 import com.wzq.util.MapUtils;
 import net.sf.jsqlparser.expression.Expression;
@@ -249,8 +250,12 @@ public class SimpleMappingSqlGenerator extends MappingSqlGenerator {
                 Select select = new Select();
                 Table table = wrapTableName(itName);
                 PlainSelect ps = new PlainSelect();
-                ps.setSelectItems(wrapColumnNames(table, aicSet.toArray(new String[aicSet.size()])));
+                List<Column> list = wrapColumnNames(table, aicSet.toArray(new String[aicSet.size()]));
+                ps.setSelectItems(list);
                 ps.setFromItem(table);
+                // 对查询的数据进行排序
+                Collections.sort(list, ColumnComparator.COMPARATOR);
+                ps.setOrderByElements(list);
                 String[] aiwcs = mapping.getAllItWhereColumns(itName, otNames);
                 Set<String> aiwcSet = new HashSet<String>(Arrays.asList(aiwcs));
                 Set<String> ks = whereColumn.keySet();

@@ -2,6 +2,7 @@ package com.wzq.mapping;
 
 import com.wzq.able.SwapBothSidesAble;
 import com.wzq.sql.structure.ColumnStructure;
+import com.wzq.sql.structure.MappingStructure;
 import com.wzq.sql.structure.TableStructure;
 
 import java.util.*;
@@ -269,6 +270,34 @@ public class TableMapping implements SwapBothSidesAble, Cloneable {
         Set<String> cms = new HashSet<String>();
         cms.addAll(getOcNames(whereIc, whereOc, icNames));
         return cms;
+    }
+
+    public TableStructure getItStructure(TableStructure otStructure) {
+        return getStructure(otStructure, true);
+    }
+
+    public TableStructure getOtStructure(TableStructure itStructure) {
+        return getStructure(itStructure, false);
+    }
+    private TableStructure getStructure(TableStructure structure, boolean iot) {
+        String name = iot ? it : ot;
+        TableStructure ts = null;
+        if ((!iot ? it : ot).equals(structure.getName())) {
+            ts = new TableStructure();
+            ts.setName(name);
+            List<ColumnStructure> css = structure.getColumns();
+            List<ColumnStructure> cssx = new ArrayList<ColumnStructure>();
+            for (ColumnStructure cs : css) {
+                for (ColumnMapping cm : columnMaps) {
+                    if (iot ? cm.getOc().equals(cs.getName()) : cm.getIc().equals(cs.getName())) {
+                        cssx.add(iot ? cm.getIStructure(cs) : cm.getOStructure(cs));
+                    }
+                }
+            }
+            ts.setColumns(cssx);
+            ts.standardize();
+        }
+        return ts;
     }
 
     public TableStructure getIStructure(){

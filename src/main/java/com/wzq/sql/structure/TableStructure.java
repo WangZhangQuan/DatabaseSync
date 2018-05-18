@@ -8,7 +8,7 @@ import com.wzq.util.NameUtils;
 
 import java.util.*;
 
-public class TableStructure implements Structure,Nameable,Standardable {
+public class TableStructure implements Structure, Nameable, Standardable {
     private String name;
     private List<ColumnStructure> columns;
 
@@ -141,7 +141,6 @@ public class TableStructure implements Structure,Nameable,Standardable {
         return new KeyValue<Structure, Structure>(tss, stss);
     }
 
-    @Override
     public Structure intersection(Structure structure) {
         if (isValidate()) {
             TableStructure ts = validateNecessaryUniformity(structure);
@@ -162,7 +161,6 @@ public class TableStructure implements Structure,Nameable,Standardable {
         return null;
     }
 
-    @Override
     public void valueOf(Structure structure) {
         if (isValidate()) {
             TableStructure ms = validateNecessaryUniformity(structure);
@@ -177,14 +175,18 @@ public class TableStructure implements Structure,Nameable,Standardable {
     }
 
     private TableStructure validateNecessaryUniformity(Structure structure) {
-        if (structure instanceof TableStructure) {
-            TableStructure s = (TableStructure) structure;
-            if (this.getName().equals(s.getName())) {
-                return s;
-            }
-            throw new UnsupportedOperationException("Unsupport Structure differenceSet because name not is same: I:" + this.getName() + "，Con side:" + s.getName());
+        TableStructure s = cast(structure);
+        if (this.getName().equals(s.getName())) {
+            return s;
         }
-        throw new UnsupportedOperationException("Unsupport Structure differenceSet because type inconsistency: I:" + this.getClass().getName() + "，Con side:" + structure.getClass().getName());
+        throw new UnsupportedOperationException("Unsupport Structure differenceSet because name not is same: I:" + this.getName() + "，Con side:" + s.getName());
+    }
+
+    public static TableStructure cast(Structure structure) {
+        if (structure instanceof TableStructure) {
+            return (TableStructure) structure;
+        }
+        throw new UnsupportedOperationException("Unsupport Structure differenceSet because type inconsistency: I:" + TableStructure.class.getName() + "，Con side:" + structure.getClass().getName());
     }
 
     public void standardize() {
@@ -196,5 +198,13 @@ public class TableStructure implements Structure,Nameable,Standardable {
             columns.clear();
             columns.addAll(std.values());
         }
+    }
+
+    public String[] getAllColumnNames() {
+        Set<String> cns = new HashSet<String>();
+        for (ColumnStructure c : columns) {
+            cns.add(c.getName());
+        }
+        return cns.toArray(new String[cns.size()]);
     }
 }

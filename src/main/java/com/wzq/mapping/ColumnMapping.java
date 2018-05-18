@@ -110,13 +110,28 @@ public class ColumnMapping implements SwapBothSidesAble,Cloneable {
         return cm;
     }
 
+    public ColumnStructure getIStructure(ColumnStructure oStructure) {
+        return getStructure(oStructure, true);
+    }
+    public ColumnStructure getOStructure(ColumnStructure iStructure) {
+        return getStructure(iStructure,false);
+    }
+
+    private ColumnStructure getStructure(ColumnStructure structure, boolean iot) {
+        String name = iot ? ic : oc;
+        ColumnStructure cs = null;
+        if ((!iot ? ic : oc).equals(structure.getName())) {
+            cs = new ColumnStructure(name, pt, structure.getValue());
+        }
+        return cs;
+    }
     public ColumnStructure getIStructure() {
         return getStructure(true);
     }
     public ColumnStructure getOStructure() {
         return getStructure(false);
     }
-    public ColumnStructure getStructure(boolean iot) {
+    private ColumnStructure getStructure(boolean iot) {
         return new ColumnStructure(iot ? ic : oc, pt, PlaceholderValue.getInstance());
     }
 }
