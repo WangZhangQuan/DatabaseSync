@@ -3,7 +3,10 @@ package com.wzq.template;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.wzq.SyncManager;
+import com.wzq.core.context.SyncContext;
+import com.wzq.core.listener.SyncListener;
 import com.wzq.core.structure.Structure;
+import com.wzq.core.sync.SyncOpreator;
 import com.wzq.generator.MappingSqlGenerator;
 import com.wzq.manager.impl.SimpleMappingManager;
 import com.wzq.mapping.Mapping;
@@ -122,6 +125,18 @@ public class TemplateMain {
         long t2 = System.currentTimeMillis();
 
         MappingStructure iMappingStructure1 = mapping.getOMappingStructure((MappingStructure) intersection1);
+
+        SyncManager syncManager = new SyncManager(new SyncContext(smm, null));
+        syncManager.addListener(new SyncListener() {
+            public void preSync(SyncOpreator syncOpreator, SyncContext syncContext) {
+                System.out.println("同步前置事件");
+            }
+
+            public void afterSync(SyncOpreator syncOpreator, SyncContext syncContext) {
+                System.out.println("同步后置事件");
+            }
+        });
+        syncManager.sync();
 
         System.out.println("开始：" + t1 + "，结束：" + t2 + "，耗时：" + (t2 - t1));
 

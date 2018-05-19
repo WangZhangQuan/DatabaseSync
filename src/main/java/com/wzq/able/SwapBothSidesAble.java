@@ -1,7 +1,8 @@
 package com.wzq.able;
 
-import com.wzq.mapping.Mapping;
-
+/**
+ * 拥有反面的操作
+ */
 public interface SwapBothSidesAble {
     <T>T generateSwapBothSides();
 }

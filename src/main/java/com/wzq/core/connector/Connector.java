@@ -37,6 +37,13 @@ public interface Connector extends Closeable {
     Target getCacheIt();
 
     /**
+     * 用于存放缓存的Target
+     * 时效性很重要
+     * @return
+     */
+    Target getCacheOt();
+
+    /**
      * 执行命令 根据 命令类型选择it或ot和返回值 无返回值返回null
      * @param command
      * @return
@@ -48,7 +55,14 @@ public interface Connector extends Closeable {
      * @param command
      * @return
      */
-    Iterable<Structure> cache(Command command);
+    Iterable<Structure> cacheI(Command command);
+
+    /**
+     * 执行缓存命令 使用cacheOt和返回值 无返回值返回null
+     * @param command
+     * @return
+     */
+    Iterable<Structure> cacheO(Command command);
 
     /**
      * 提交执行代码
