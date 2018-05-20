@@ -29,6 +29,7 @@ public class OpreatorRun implements Runnable {
             sqlGeneratorCommandArgs = (SqlGeneratorCommandArgs) args;
         }
 
+        // TODO 增删改操作
         switch (command.getOpreator()) {
 
             case UPDATE:
