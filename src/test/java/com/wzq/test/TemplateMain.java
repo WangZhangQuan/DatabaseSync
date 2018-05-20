@@ -1,8 +1,10 @@
-package com.wzq.template;
+package com.wzq.test;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.wzq.SyncManager;
+import com.wzq.connnector.SimpleConnector;
+import com.wzq.connnector.tagert.SimpleTarget;
 import com.wzq.core.context.SyncContext;
 import com.wzq.core.listener.SyncListener;
 import com.wzq.core.structure.Structure;
@@ -16,12 +18,15 @@ import com.wzq.util.FreemarkerUtil;
 import com.wzq.util.KeyValue;
 import com.wzq.util.MapUtils;
 import freemarker.template.Configuration;
+import org.junit.Test;
 
 import java.io.*;
 import java.util.*;
 
 public class TemplateMain {
-    public static void main(String[] args){
+
+    @Test
+    public void t1(){
         FreemarkerUtil fu = new FreemarkerUtil(TemplateMain.class.getResource("/").getPath(), Configuration.VERSION_2_3_23, "utf-8");
         Map<String, Object> model = new HashMap<String, Object>();
         Mapping mapping = Mapping.parseJson(JSON.parseObject("{name:'u8_订单',tableMaps:[{it:'t_user',ot:'person', columnMaps:[{ic:'tisx',oc:'tix',pt:'java.sql.Timestamp',whereIc:false,whereOc:false},{ic:'tix',oc:'tx',pt:'java.sql.Time',whereIc:false,whereOc:false},{ic:'datex',oc:'dax',pt:'java.sql.Date',whereIc:false,whereOc:false},{ic:'doux',oc:'dx',pt:'java.lang.Double',whereIc:false,whereOc:false},{ic:'flox',oc:'fx',pt:'java.lang.Float',whereIc:false,whereOc:false},{ic:'lonx',oc:'lx',pt:'java.lang.Long',whereIc:false,whereOc:false},{ic:'byx',oc:'bx',pt:'java.lang.Byte',whereIc:false,whereOc:false},{ic:'can',oc:'c',pt:'java.lang.Boolean',whereIc:false,whereOc:false},{ic:'price',oc:'p',pt:'java.math.BigDecimal',whereIc:false,whereOc:false},{ic:'username',oc:'name',pt:'java.lang.String',whereIc:false,whereOc:false},{ic:'userphone',oc:'phone',pt:'java.lang.String',whereIc:true,whereOc:true}]},{it:'t_user',ot:'person_info', columnMaps:[{ic:'remark',oc:'desc',pt:'java.lang.String',whereIc:false,whereOc:false},{ic:'addr',oc:'address',pt:'java.lang.String',whereIc:false,whereOc:false},{ic:'id',oc:'identity',pt:'java.lang.Integer',whereIc:true,whereOc:true}]},{it:'t_user',ot:'person_info_clone', columnMaps:[{ic:'remark',oc:'desc',pt:'java.lang.String',whereIc:false,whereOc:false},{ic:'addr',oc:'address',pt:'java.lang.String',whereIc:false,whereOc:false},{ic:'id',oc:'identity',pt:'java.lang.Integer',whereIc:true,whereOc:true}]}]}"));
@@ -126,7 +131,9 @@ public class TemplateMain {
 
         MappingStructure iMappingStructure1 = mapping.getOMappingStructure((MappingStructure) intersection1);
 
-        SyncManager syncManager = new SyncManager(new SyncContext(smm, null));
+        SimpleConnector simpleConnector = new SimpleConnector(new SimpleTarget(), new SimpleTarget(), new SimpleTarget());
+
+        SyncManager syncManager = new SyncManager(new SyncContext(smm, simpleConnector));
         syncManager.addListener(new SyncListener() {
             public void preSync(SyncOpreator syncOpreator, SyncContext syncContext) {
                 System.out.println("同步前置事件");

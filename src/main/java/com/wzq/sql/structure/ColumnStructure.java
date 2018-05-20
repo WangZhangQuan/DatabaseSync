@@ -4,7 +4,10 @@ import com.wzq.able.Nameable;
 import com.wzq.core.structure.Structure;
 import com.wzq.util.KeyValue;
 
-public class ColumnStructure implements Structure,Nameable {
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
+public class ColumnStructure implements Structure, Nameable, Comparable<ColumnStructure> {
     private String name;
     private String programType;
     private Object value;
@@ -98,5 +101,32 @@ public class ColumnStructure implements Structure,Nameable {
             return (ColumnStructure) structure;
         }
         throw new UnsupportedOperationException("Unsupport Structure differenceSet because type inconsistency: I:" + ColumnStructure.class.getName() + "，Con side:" + structure.getClass().getName());
+    }
+
+    public int compareTo(ColumnStructure o) {
+        if(o == null) {
+            return 1;
+        }
+        if (value == null && o.value != null) {
+            return -1;
+        }
+        if (value != null && o.value == null) {
+            return 1;
+        }
+        if (value == o.value) {
+            return 0;
+        }
+        try {
+            Class<?> aClass = value.getClass();
+            Method compareTo = aClass.getMethod("compareTo", aClass);
+            return (Integer)compareTo.invoke(value, o.value);
+        } catch (NoSuchMethodException e) {
+//            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+//            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+//            e.printStackTrace();
+        }
+        return 0;
     }
 }

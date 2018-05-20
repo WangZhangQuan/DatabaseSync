@@ -445,8 +445,7 @@ public class Mapping implements SwapBothSidesAble, Cloneable {
     private MappingStructure getMappingStructure(MappingStructure structure, boolean iot) {
         MappingStructure ms = null;
         if (name.equals(structure.getName())) {
-            ms = new MappingStructure();
-            ms.setName(name);
+            ms = new MappingStructure(this);
             List<TableStructure> tss = structure.getTables();
             List<TableStructure> tssx = new ArrayList<TableStructure>();
             for (TableStructure ts : tss) {
@@ -479,8 +478,7 @@ public class Mapping implements SwapBothSidesAble, Cloneable {
     }
 
     private MappingStructure getStructure(boolean iot) {
-        MappingStructure ms = new MappingStructure();
-        ms.setName(name);
+        MappingStructure ms = new MappingStructure(this);
         List<TableStructure> tss = new ArrayList<TableStructure>();
         for (TableMapping tm : tableMaps) {
             if (iot) {

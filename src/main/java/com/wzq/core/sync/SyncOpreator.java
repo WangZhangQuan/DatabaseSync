@@ -11,7 +11,10 @@ public class SyncOpreator {
 
     private Attach attach;
 
-    public SyncOpreator(int imLevel, int omLevel, Attach attach) {
+    public SyncOpreator() {
+    }
+
+    public SyncOpreator(Attach attach) {
         this.attach = attach;
     }
 

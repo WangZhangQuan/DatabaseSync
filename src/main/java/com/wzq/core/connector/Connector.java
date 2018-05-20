@@ -2,6 +2,7 @@ package com.wzq.core.connector;
 
 import com.wzq.core.command.Command;
 import com.wzq.core.structure.Structure;
+import com.wzq.mapping.Mapping;
 
 import java.io.Closeable;
 
@@ -75,5 +76,5 @@ public interface Connector extends Closeable {
      * @param tableNames
      * @return
      */
-    Structure getStructure(Target t, String[] tableNames);
+    Structure getStructure(Target t, Mapping mapping, String[] tableNames);
 }

@@ -11,19 +11,17 @@ import com.wzq.core.listener.SyncMappingListener;
 import com.wzq.core.listener.SyncTableListener;
 import com.wzq.core.structure.Attach;
 import com.wzq.core.structure.Structure;
-import com.wzq.core.sync.Sync;
 import com.wzq.core.sync.SyncOpreator;
 import com.wzq.manager.MappingManager;
 import com.wzq.mapping.Mapping;
-import com.wzq.mapping.TableMapping;
 import com.wzq.sql.structure.CoverOpreater;
 import com.wzq.sql.structure.MappingAttach;
 import com.wzq.sql.structure.MappingStructure;
 import com.wzq.sql.structure.TableStructure;
 import com.wzq.util.KeyValue;
 
-import java.math.BigInteger;
 import java.util.*;
+import java.util.logging.Logger;
 
 public class SimpleSyncOpreatorExecutor implements SyncOpreatorExecutor {
 
@@ -147,17 +145,17 @@ public class SimpleSyncOpreatorExecutor implements SyncOpreatorExecutor {
             return;
         }
         // 查询对方数据 必要排序
-        Iterable<Structure> ors = connector.connect(generator.generator(ims.newReverseSelectCommand(ts.getName(), allItColumns, new String[0], allOtNames)));
+        Iterable<Structure> ors = connector.connect(ims.newReverseSelectCommand(generator, ts.getName(), allItColumns, new String[0], allOtNames));
         // 查询己方数据 必要排序
-        Iterable<Structure> irs = connector.connect(generator.generator(ims.newSelectCommand(ts.getName(), allItColumns, new String[0], allOtNames)));
+        Iterable<Structure> irs = connector.connect(ims.newSelectCommand(generator, ts.getName(), allItColumns, new String[0], allOtNames));
         // 数据顺序对比 差异的存入缓存Target中 -> 超过阀值（己方缓存数 * 对方缓存数）> 200000 -> 整表同步
 
         // 删除以前的缓存 缓存格式都使用己方结构
-        Command dc = ims.newDropCommand(ts.getName(), allOtNames);
+        Command dc = ims.newDropCommand(generator, ts.getName(), allOtNames);
         connector.cacheI(dc);
         connector.cacheO(dc);
         // 创建两个缓存 缓存格式都使用己方结构
-        Command cc = ims.newCreateCommand(ts.getName(), allItColumns, connector.getCacheIt().getDialect(), allOtNames);
+        Command cc = ims.newCreateCommand(generator, ts.getName(), allItColumns, connector.getCacheIt().getDialect(), allOtNames);
         connector.cacheI(cc);
         connector.cacheO(cc);
 
@@ -181,20 +179,20 @@ public class SimpleSyncOpreatorExecutor implements SyncOpreatorExecutor {
 
             if (omsx != null) {
                 if (imsx != null) {
-                    connector.cacheO(omsx.newInsertCommand(ts.getName(), allItColumns, allOtNames));
+                    connector.cacheO(omsx.newInsertCommand(generator, ts.getName(), allItColumns, allOtNames));
                     cacheOCount++; // 缓存个数加1
                 }
             }
 
             if (imsx != null) {
                 if (omsx != null) {
-                    connector.cacheI(imsx.newInsertCommand(ts.getName(), allItColumns, allOtNames));
+                    connector.cacheI(imsx.newInsertCommand(generator, ts.getName(), allItColumns, allOtNames));
                     cacheICount++; // 缓存个数加1
                 }
             }
 
             if (omsx != null) {
-                Iterable<Structure> cs = connector.cacheI(omsx.newSelectCommand(ts.getName(), allItColumns, allItWhereColumns, allOtNames));
+                Iterable<Structure> cs = connector.cacheI(omsx.newSelectCommand(generator, ts.getName(), allItColumns, allItWhereColumns, allOtNames));
                 Iterator<Structure> citer = cs.iterator();
                 if (citer.hasNext()) {
                     MappingStructure cast = MappingStructure.cast(citer.next());
@@ -204,7 +202,7 @@ public class SimpleSyncOpreatorExecutor implements SyncOpreatorExecutor {
                     }
                     // 查询到相同数据了
                     // 己方缓存数据到此条的之前数据执行真实删除操作 清空操作过的数据
-                    Iterable<Structure> csx = connector.cacheI(omsx.newSelectCommand(ts.getName(), allItColumns, new String[0], allOtNames));
+                    Iterable<Structure> csx = connector.cacheI(omsx.newSelectCommand(generator, ts.getName(), allItColumns, new String[0], allOtNames));
                     Iterator<Structure> citerx = csx.iterator();
                     while (citerx.hasNext()) {
                         MappingStructure msc = MappingStructure.cast(citerx.next());
@@ -212,9 +210,9 @@ public class SimpleSyncOpreatorExecutor implements SyncOpreatorExecutor {
                         if (cast.equals(msc)) {
                             break;
                         } else {
-                            Command dec = msc.newDeleteCommand(ts.getName(), allItWhereColumns, allOtNames);
+                            Command dec = msc.newDeleteCommand(generator, ts.getName(), allItWhereColumns, allOtNames);
                             // 删除真实库
-                            connector.connect(generator.generator(dec));
+                            connector.connect(dec);
                             // 删除缓存库
                             connector.cacheI(dec);
                             // 缓存减一
@@ -222,25 +220,25 @@ public class SimpleSyncOpreatorExecutor implements SyncOpreatorExecutor {
                         }
                     }
                     // 对方缓存数据全部是执行插入操作 清空对方缓存数据
-                    Iterable<Structure> ocs = connector.cacheO(omsx.newSelectCommand(ts.getName(), allItColumns, new String[0], allOtNames));
+                    Iterable<Structure> ocs = connector.cacheO(omsx.newSelectCommand(generator, ts.getName(), allItColumns, new String[0], allOtNames));
                     Iterator<Structure> ociter = ocs.iterator();
                     while (ociter.hasNext()) {
                         MappingStructure msc = MappingStructure.cast(ociter.next());
-                        connector.connect(generator.generator(msc.newInsertCommand(ts.getName(), allItColumns, allOtNames)));
+                        connector.connect(msc.newInsertCommand(generator, ts.getName(), allItColumns, allOtNames));
                     }
                     // 清空此缓存表
-                    clearCacheTable(ts, omsx, connector, allItColumns, allOtNames, false);
+                    clearCacheTable(generator, ts, omsx, connector, allItColumns, allOtNames, false);
                     cacheOCount = 0L; // 缓存重设为0
                     // 比较此条数据是否全等 若不是，此条数据更新操作
                     if (!omsx.equals(cast)) {
-                        connector.connect(generator.generator(omsx.newUpdateCommand(ts.getName(), allItColumns, allItWhereColumns, allOtNames)));
+                        connector.connect(omsx.newUpdateCommand(generator, ts.getName(), allItColumns, allItWhereColumns, allOtNames));
                     }
                     continue;
                 }
             }
 
             if (imsx != null) {
-                Iterable<Structure> cs = connector.cacheO(imsx.newSelectCommand(ts.getName(), allItColumns, allItWhereColumns, allOtNames));
+                Iterable<Structure> cs = connector.cacheO(imsx.newSelectCommand(generator, ts.getName(), allItColumns, allItWhereColumns, allOtNames));
                 Iterator<Structure> citer = cs.iterator();
                 if (citer.hasNext()) {
                     MappingStructure cast = MappingStructure.cast(citer.next());
@@ -252,7 +250,7 @@ public class SimpleSyncOpreatorExecutor implements SyncOpreatorExecutor {
 
                     // 查询到相同数据了
                     // 对方缓存数据到此条的之前数据执行真实插入操作 清空操作过的数据
-                    Iterable<Structure> csx = connector.cacheO(imsx.newSelectCommand(ts.getName(), allItColumns, new String[0], allOtNames));
+                    Iterable<Structure> csx = connector.cacheO(imsx.newSelectCommand(generator, ts.getName(), allItColumns, new String[0], allOtNames));
                     Iterator<Structure> citerx = csx.iterator();
                     while (citerx.hasNext()) {
                         MappingStructure msc = MappingStructure.cast(citerx.next());
@@ -260,10 +258,10 @@ public class SimpleSyncOpreatorExecutor implements SyncOpreatorExecutor {
                         if (cast.equals(msc)) {
                             break;
                         } else {
-                            Command dec = msc.newDeleteCommand(ts.getName(), allItWhereColumns, allOtNames);
-                            Command isc = msc.newInsertCommand(ts.getName(), allItColumns, allOtNames);
+                            Command dec = msc.newDeleteCommand(generator, ts.getName(), allItWhereColumns, allOtNames);
+                            Command isc = msc.newInsertCommand(generator, ts.getName(), allItColumns, allOtNames);
                             // 插入真实库
-                            connector.connect(generator.generator(isc));
+                            connector.connect(isc);
                             // 删除缓存库
                             connector.cacheO(dec);
                             // 缓存减一
@@ -271,18 +269,18 @@ public class SimpleSyncOpreatorExecutor implements SyncOpreatorExecutor {
                         }
                     }
                     // 己方缓存数据全部是执行删除操作 清空己方缓存数据
-                    Iterable<Structure> ics = connector.cacheI(imsx.newSelectCommand(ts.getName(), allItColumns, new String[0], allOtNames));
+                    Iterable<Structure> ics = connector.cacheI(imsx.newSelectCommand(generator, ts.getName(), allItColumns, new String[0], allOtNames));
                     Iterator<Structure> iciter = ics.iterator();
                     while (iciter.hasNext()) {
                         MappingStructure msc = MappingStructure.cast(iciter.next());
-                        connector.connect(generator.generator(msc.newDeleteCommand(ts.getName(), allItWhereColumns, allOtNames)));
+                        connector.connect(msc.newDeleteCommand(generator, ts.getName(), allItWhereColumns, allOtNames));
                     }
                     // 清空此缓存表
-                    clearCacheTable(ts, imsx, connector, allItColumns, allOtNames, true);
+                    clearCacheTable(generator, ts, imsx, connector, allItColumns, allOtNames, true);
                     cacheICount = 0L; // 缓存重设为0
                     // 比较此条数据是否全等 若不是，此条数据更新操作
                     if (!omsx.equals(cast)) {
-                        connector.connect(generator.generator(omsx.newUpdateCommand(ts.getName(), allItColumns, allItWhereColumns, allOtNames)));
+                        connector.connect(omsx.newUpdateCommand(generator, ts.getName(), allItColumns, allItWhereColumns, allOtNames));
                     }
                     continue;
                 }
@@ -309,7 +307,7 @@ public class SimpleSyncOpreatorExecutor implements SyncOpreatorExecutor {
         // 只同步己方表结构不动对面表结构
         for (Map.Entry<String, Mapping> entry : am.entrySet()) {
             // 获取当前正在使用的Mapping结构
-            Structure s = connector.getStructure(connector.getIt(), entry.getValue().getAllItNames());
+            Structure s = connector.getStructure(connector.getIt(), entry.getValue(), entry.getValue().getAllItNames());
             // 获取需要变为的Mapping结构
             MappingStructure ims = entry.getValue().getIMappingStructure();
             // 求出差异表结构
@@ -358,11 +356,11 @@ public class SimpleSyncOpreatorExecutor implements SyncOpreatorExecutor {
      * @param allOtNames
      * @param iot
      */
-    private void clearCacheTable(TableStructure ts, MappingStructure ms, Connector connector, String[] allItColumns, String[] allOtNames, boolean iot) {
+    private void clearCacheTable(Generator generator, TableStructure ts, MappingStructure ms, Connector connector, String[] allItColumns, String[] allOtNames, boolean iot) {
         // 删除以前的缓存 缓存格式都使用己方结构
-        Command dc = ms.newDropCommand(ts.getName(), allOtNames);
+        Command dc = ms.newDropCommand(generator, ts.getName(), allOtNames);
         // 创建两个缓存 缓存格式都使用己方结构
-        Command cc = ms.newCreateCommand(ts.getName(), allItColumns, connector.getCacheIt().getDialect(), allOtNames);
+        Command cc = ms.newCreateCommand(generator, ts.getName(), allItColumns, connector.getCacheIt().getDialect(), allOtNames);
         if (iot) {
             // 删除表
             connector.cacheI(dc);
@@ -388,11 +386,13 @@ public class SimpleSyncOpreatorExecutor implements SyncOpreatorExecutor {
             TableStructure imts = ims.findTable(ts.getName());
             String[] allOtNames = mapping.getAllOtNames(imts.getName());
             // 删除结构变动的表
-            connector.connect(generator.generator(ims.newDropCommand(imts.getName(), allOtNames)));
+            try {
+                connector.connect(ims.newDropCommand(generator, imts.getName(), allOtNames));
+            } catch (Exception e) {}
             // 得到己方的表的所有字段
             String[] allItColumns = mapping.getAllItColumns(imts.getName(), allOtNames);
             // 创建结构变动的表
-            connector.connect(generator.generator(ims.newCreateCommand(imts.getName(), allItColumns, connector.getIt().getDialect(), allOtNames)));
+            connector.connect(ims.newCreateCommand(generator, imts.getName(), allItColumns, connector.getIt().getDialect(), allOtNames));
             // 同步整张表
             syncTable(connector, generator, mapping, ims, imts, allItColumns, allOtNames);
         }
@@ -409,11 +409,11 @@ public class SimpleSyncOpreatorExecutor implements SyncOpreatorExecutor {
      * @param allOtNames
      */
     private void syncTable(Connector connector, Generator generator, Mapping mapping, MappingStructure ims, TableStructure imts, String[] allItColumns, String[] allOtNames) {
-        Iterable<Structure> rs = connector.connect(generator.generator(ims.newReverseSelectCommand(imts.getName(), allItColumns, new String[0], allOtNames)));
+        Iterable<Structure> rs = connector.connect(ims.newReverseSelectCommand(generator, imts.getName(), allItColumns, new String[0], allOtNames));
         for (Structure r : rs) {
             MappingStructure msx = MappingStructure.cast(r);
             MappingStructure imsx = mapping.getIMappingStructure(msx);
-            connector.connect(generator.generator(imsx.newInsertCommand(imts.getName(), allItColumns, allOtNames)));
+            connector.connect(imsx.newInsertCommand(generator, imts.getName(), allItColumns, allOtNames));
         }
     }
 

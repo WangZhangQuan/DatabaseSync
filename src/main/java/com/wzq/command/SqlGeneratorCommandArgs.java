@@ -1,5 +1,6 @@
 package com.wzq.command;
 
+import com.wzq.core.generator.Generator;
 import com.wzq.sql.type.Dialect;
 import com.wzq.core.command.CommandArgs;
 
@@ -7,6 +8,10 @@ import java.util.Map;
 
 public class SqlGeneratorCommandArgs extends CommandArgs {
 
+    /**
+     * 用于生成执行Command的生成器
+     */
+    private Generator generator;
     /**
      * 己方表名称
      */
@@ -81,8 +86,17 @@ public class SqlGeneratorCommandArgs extends CommandArgs {
         this.dialect = dialect;
     }
 
-    public static SqlGeneratorCommandArgs newUpdateArgs(String itName, Map<String, Object> updateItColumn, Map<String, Object> whereColumn, String... otNames) {
+    public Generator getGenerator() {
+        return generator;
+    }
+
+    public void setGenerator(Generator generator) {
+        this.generator = generator;
+    }
+
+    public static SqlGeneratorCommandArgs newUpdateArgs(Generator generator, String itName, Map<String, Object> updateItColumn, Map<String, Object> whereColumn, String... otNames) {
         SqlGeneratorCommandArgs args = new SqlGeneratorCommandArgs();
+        args.generator = generator;
         args.itName = itName;
         args.influenceColumnMap = updateItColumn;
         args.whereColumnMap = whereColumn;
@@ -90,24 +104,27 @@ public class SqlGeneratorCommandArgs extends CommandArgs {
         return args;
     }
 
-    public static SqlGeneratorCommandArgs newInsertArgs(String itName, Map<String, Object> insertItColumn, String... otNames) {
+    public static SqlGeneratorCommandArgs newInsertArgs(Generator generator, String itName, Map<String, Object> insertItColumn, String... otNames) {
         SqlGeneratorCommandArgs args = new SqlGeneratorCommandArgs();
+        args.generator = generator;
         args.itName = itName;
         args.influenceColumnMap = insertItColumn;
         args.otNames = otNames;
         return args;
     }
 
-    public static SqlGeneratorCommandArgs newDeleteArgs(String itName, Map<String, Object> whereColumn, String... otNames) {
+    public static SqlGeneratorCommandArgs newDeleteArgs(Generator generator, String itName, Map<String, Object> whereColumn, String... otNames) {
         SqlGeneratorCommandArgs args = new SqlGeneratorCommandArgs();
+        args.generator = generator;
         args.itName = itName;
         args.whereColumnMap = whereColumn;
         args.otNames = otNames;
         return args;
     }
 
-    public static SqlGeneratorCommandArgs newSelectArgs(String itName, String[] selectItColumns, Map<String, Object> whereColumn, String... otNames) {
+    public static SqlGeneratorCommandArgs newSelectArgs(Generator generator, String itName, String[] selectItColumns, Map<String, Object> whereColumn, String... otNames) {
         SqlGeneratorCommandArgs args = new SqlGeneratorCommandArgs();
+        args.generator = generator;
         args.itName = itName;
         args.columnNames = selectItColumns;
         args.whereColumnMap = whereColumn;
@@ -115,8 +132,9 @@ public class SqlGeneratorCommandArgs extends CommandArgs {
         return args;
     }
 
-    public static SqlGeneratorCommandArgs newCreateArgs(String itName, String[] createItColumns, Dialect dialect, String... otNames) {
+    public static SqlGeneratorCommandArgs newCreateArgs(Generator generator, String itName, String[] createItColumns, Dialect dialect, String... otNames) {
         SqlGeneratorCommandArgs args = new SqlGeneratorCommandArgs();
+        args.generator = generator;
         args.itName = itName;
         args.columnNames = createItColumns;
         args.dialect = dialect;
@@ -124,8 +142,9 @@ public class SqlGeneratorCommandArgs extends CommandArgs {
         return args;
     }
 
-    public static SqlGeneratorCommandArgs newDropArgs(String itName, String... otNames) {
+    public static SqlGeneratorCommandArgs newDropArgs(Generator generator, String itName, String... otNames) {
         SqlGeneratorCommandArgs args = new SqlGeneratorCommandArgs();
+        args.generator = generator;
         args.itName = itName;
         args.otNames = otNames;
         return args;

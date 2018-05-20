@@ -6,7 +6,9 @@ import com.wzq.command.SqlGeneratorCommandArgs;
 import com.wzq.core.command.Command;
 import com.wzq.core.command.CommandArgs;
 import com.wzq.core.command.Opreator;
+import com.wzq.core.generator.Generator;
 import com.wzq.core.structure.Structure;
+import com.wzq.mapping.Mapping;
 import com.wzq.sql.type.Dialect;
 import com.wzq.util.KeyValue;
 import com.wzq.util.NameUtils;
@@ -19,6 +21,8 @@ public class MappingStructure implements Structure, Nameable, Standardable {
     private String name;
 
     private List<TableStructure> tables;
+
+    private Mapping mapping;
 
     public KeyValue<Structure, Structure> differenceSet(Structure structure) {
         // 验证必要参数正确
@@ -122,7 +126,7 @@ public class MappingStructure implements Structure, Nameable, Standardable {
 
     @Override
     public Object clone() {
-        MappingStructure ms = new MappingStructure(name);
+        MappingStructure ms = new MappingStructure(mapping);
         if (isValidate()) {
             List<TableStructure> ts = new ArrayList<TableStructure>();
             for (TableStructure t : tables) {
@@ -158,16 +162,30 @@ public class MappingStructure implements Structure, Nameable, Standardable {
         }
     }
 
-    public MappingStructure() {
+//    public MappingStructure() {
+//    }
+
+    public MappingStructure(Mapping mapping) {
+        this.name = mapping.getName();
+        this.mapping = mapping;
     }
 
-    public MappingStructure(String name) {
-        this.name = name;
-    }
-
-    public MappingStructure(String name, List<TableStructure> tables) {
-        this.name = name;
+//    public MappingStructure(String name) {
+//        this.name = name;
+//    }
+//
+    public MappingStructure(Mapping mapping, List<TableStructure> tables) {
+        this.name = mapping.getName();
+        this.mapping = mapping;
         this.tables = tables;
+    }
+
+    public Mapping getMapping() {
+        return mapping;
+    }
+
+    public void setMapping(Mapping mapping) {
+        this.mapping = mapping;
     }
 
     public String getName() {
@@ -266,65 +284,65 @@ public class MappingStructure implements Structure, Nameable, Standardable {
         return result;
     }
 
-    public Command newUpdateCommand(String itName, String[] updateItColumns, String[] whereColumns, String... otNames) {
+    public Command newUpdateCommand(Generator generator, String itName, String[] updateItColumns, String[] whereColumns, String... otNames) {
         if (!validateNecessaryTableAndColumns(itName, updateItColumns)) return null;
-        return new Command(Opreator.UPDATE, SqlGeneratorCommandArgs.newUpdateArgs(itName, findTableAndColumnValues(itName, updateItColumns), findTableAndColumnValues(itName, whereColumns), otNames));
+        return new Command(Opreator.UPDATE, SqlGeneratorCommandArgs.newUpdateArgs(generator, itName, findTableAndColumnValues(itName, updateItColumns), findTableAndColumnValues(itName, whereColumns), otNames), this, mapping);
     }
 
-    public Command newReverseUpdateCommand(String itName, String[] updateItColumns, String[] whereColumns, String... otNames) {
+    public Command newReverseUpdateCommand(Generator generator, String itName, String[] updateItColumns, String[] whereColumns, String... otNames) {
         if (!validateNecessaryTableAndColumns(itName, updateItColumns)) return null;
-        return new Command(Opreator.REVERSE_UPDATE, SqlGeneratorCommandArgs.newUpdateArgs(itName, findTableAndColumnValues(itName, updateItColumns), findTableAndColumnValues(itName, whereColumns), otNames));
+        return new Command(Opreator.REVERSE_UPDATE, SqlGeneratorCommandArgs.newUpdateArgs(generator, itName, findTableAndColumnValues(itName, updateItColumns), findTableAndColumnValues(itName, whereColumns), otNames), this, mapping);
     }
 
-    public Command newInsertCommand(String itName, String[] insertItColumns, String... otNames) {
+    public Command newInsertCommand(Generator generator, String itName, String[] insertItColumns, String... otNames) {
         if (!validateNecessaryTableAndColumns(itName, insertItColumns)) return null;
-        return new Command(Opreator.NEW, SqlGeneratorCommandArgs.newInsertArgs(itName, findTableAndColumnValues(itName, insertItColumns), otNames));
+        return new Command(Opreator.NEW, SqlGeneratorCommandArgs.newInsertArgs(generator, itName, findTableAndColumnValues(itName, insertItColumns), otNames), this, mapping);
     }
 
-    public Command newReverseInsertCommand(String itName, String[] insertItColumns, String... otNames) {
+    public Command newReverseInsertCommand(Generator generator, String itName, String[] insertItColumns, String... otNames) {
         if (!validateNecessaryTableAndColumns(itName, insertItColumns)) return null;
-        return new Command(Opreator.REVERSE_NEW, SqlGeneratorCommandArgs.newInsertArgs(itName, findTableAndColumnValues(itName, insertItColumns), otNames));
+        return new Command(Opreator.REVERSE_NEW, SqlGeneratorCommandArgs.newInsertArgs(generator, itName, findTableAndColumnValues(itName, insertItColumns), otNames), this, mapping);
     }
 
-    public Command newDeleteCommand(String itName, String[] whereColumns, String... otNames) {
+    public Command newDeleteCommand(Generator generator, String itName, String[] whereColumns, String... otNames) {
         if (!validateNecessaryTable(itName)) return null;
-        return new Command(Opreator.DELETE, SqlGeneratorCommandArgs.newDeleteArgs(itName, findTableAndColumnValues(itName, whereColumns), otNames));
+        return new Command(Opreator.DELETE, SqlGeneratorCommandArgs.newDeleteArgs(generator, itName, findTableAndColumnValues(itName, whereColumns), otNames), this, mapping);
 
     }
 
-    public Command newReverseDeleteCommand(String itName, String[] whereColumns, String... otNames) {
+    public Command newReverseDeleteCommand(Generator generator, String itName, String[] whereColumns, String... otNames) {
         if (!validateNecessaryTable(itName)) return null;
-        return new Command(Opreator.REVERSE_DELETE, SqlGeneratorCommandArgs.newDeleteArgs(itName, findTableAndColumnValues(itName, whereColumns), otNames));
+        return new Command(Opreator.REVERSE_DELETE, SqlGeneratorCommandArgs.newDeleteArgs(generator, itName, findTableAndColumnValues(itName, whereColumns), otNames), this, mapping);
     }
 
-    public Command newSelectCommand(String itName, String[] selectItColumns, String[] whereColumns, String... otNames) {
+    public Command newSelectCommand(Generator generator, String itName, String[] selectItColumns, String[] whereColumns, String... otNames) {
         if (!validateNecessaryTableAndColumns(itName, selectItColumns)) return null;
-        return new Command(Opreator.SHOW, SqlGeneratorCommandArgs.newSelectArgs(itName, selectItColumns, findTableAndColumnValues(itName, whereColumns), otNames));
+        return new Command(Opreator.SHOW, SqlGeneratorCommandArgs.newSelectArgs(generator, itName, selectItColumns, findTableAndColumnValues(itName, whereColumns), otNames), this, mapping);
     }
 
-    public Command newReverseSelectCommand(String itName, String[] selectItColumns, String[] whereColumns, String... otNames) {
+    public Command newReverseSelectCommand(Generator generator, String itName, String[] selectItColumns, String[] whereColumns, String... otNames) {
         if (!validateNecessaryTableAndColumns(itName, selectItColumns)) return null;
-        return new Command(Opreator.REVERSE_SHOW, SqlGeneratorCommandArgs.newSelectArgs(itName, selectItColumns, findTableAndColumnValues(itName, whereColumns), otNames));
+        return new Command(Opreator.REVERSE_SHOW, SqlGeneratorCommandArgs.newSelectArgs(generator, itName, selectItColumns, findTableAndColumnValues(itName, whereColumns), otNames), this, mapping);
     }
 
-    public Command newCreateCommand(String itName, String[] createItColumns, Dialect dialect, String... otNames) {
+    public Command newCreateCommand(Generator generator, String itName, String[] createItColumns, Dialect dialect, String... otNames) {
         if (!validateNecessaryTableAndColumns(itName, createItColumns)) return null;
-        return new Command(Opreator.CREATE, SqlGeneratorCommandArgs.newCreateArgs(itName, createItColumns, dialect, otNames));
+        return new Command(Opreator.CREATE, SqlGeneratorCommandArgs.newCreateArgs(generator, itName, createItColumns, dialect, otNames), this, mapping);
     }
 
-    public Command newReverseCreateCommand(String itName, String[] createItColumns, Dialect dialect, String... otNames) {
+    public Command newReverseCreateCommand(Generator generator, String itName, String[] createItColumns, Dialect dialect, String... otNames) {
         if (!validateNecessaryTableAndColumns(itName, createItColumns)) return null;
-        return new Command(Opreator.REVERSE_CREATE, SqlGeneratorCommandArgs.newCreateArgs(itName, createItColumns, dialect, otNames));
+        return new Command(Opreator.REVERSE_CREATE, SqlGeneratorCommandArgs.newCreateArgs(generator, itName, createItColumns, dialect, otNames), this, mapping);
     }
 
-    public Command newDropCommand(String itName, String... otNames) {
+    public Command newDropCommand(Generator generator, String itName, String... otNames) {
         if (!validateNecessaryTable(itName)) return null;
-        return new Command(Opreator.DROP, SqlGeneratorCommandArgs.newDropArgs(itName, otNames));
+        return new Command(Opreator.DROP, SqlGeneratorCommandArgs.newDropArgs(generator, itName, otNames), this, mapping);
     }
 
-    public Command newReverseDropCommand(String itName, String... otNames) {
+    public Command newReverseDropCommand(Generator generator, String itName, String... otNames) {
         if (!validateNecessaryTable(itName)) return null;
-        return new Command(Opreator.REVERSE_DROP, SqlGeneratorCommandArgs.newDropArgs(itName, otNames));
+        return new Command(Opreator.REVERSE_DROP, SqlGeneratorCommandArgs.newDropArgs(generator, itName, otNames), this, mapping);
     }
 
     private boolean validateNecessaryTable(String tableName) {

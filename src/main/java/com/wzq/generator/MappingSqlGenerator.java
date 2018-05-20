@@ -24,40 +24,40 @@ public abstract class MappingSqlGenerator implements Generator {
                 switch (command.getOpreator()) {
 
                     case UPDATE:
-                        result = new Command(Opreator.UPDATE, new SqlExecutorCommandArgs(this.generateUpdateSql(args.getItName(), args.getInfluenceColumnMap(), args.getWhereColumnMap(), args.getOtNames())));
+                        result = new Command(Opreator.UPDATE, new SqlExecutorCommandArgs(this.generateUpdateSql(args.getItName(), args.getInfluenceColumnMap(), args.getWhereColumnMap(), args.getOtNames())), command.getStructure(), command.getMapping());
                         break;
                     case REVERSE_UPDATE:
-                        result = new Command(Opreator.REVERSE_UPDATE, new SqlExecutorCommandArgs(this.generateReverseUpdateSql(args.getItName(), args.getInfluenceColumnMap(), args.getWhereColumnMap(), args.getOtNames())));
+                        result = new Command(Opreator.REVERSE_UPDATE, new SqlExecutorCommandArgs(this.generateReverseUpdateSql(args.getItName(), args.getInfluenceColumnMap(), args.getWhereColumnMap(), args.getOtNames())), command.getStructure(), command.getMapping());
                         break;
                     case NEW:
-                        result = new Command(Opreator.NEW, new SqlExecutorCommandArgs(this.generateInsertSql(args.getItName(), args.getInfluenceColumnMap(), args.getOtNames())));
+                        result = new Command(Opreator.NEW, new SqlExecutorCommandArgs(this.generateInsertSql(args.getItName(), args.getInfluenceColumnMap(), args.getOtNames())), command.getStructure(), command.getMapping());
                         break;
                     case REVERSE_NEW:
-                        result = new Command(Opreator.REVERSE_NEW, new SqlExecutorCommandArgs(this.generateReverseInsertSql(args.getItName(), args.getInfluenceColumnMap(), args.getOtNames())));
+                        result = new Command(Opreator.REVERSE_NEW, new SqlExecutorCommandArgs(this.generateReverseInsertSql(args.getItName(), args.getInfluenceColumnMap(), args.getOtNames())), command.getStructure(), command.getMapping());
                         break;
                     case DELETE:
-                        result = new Command(Opreator.DELETE, new SqlExecutorCommandArgs(this.generateDeleteSql(args.getItName(), args.getWhereColumnMap(), args.getOtNames())));
+                        result = new Command(Opreator.DELETE, new SqlExecutorCommandArgs(this.generateDeleteSql(args.getItName(), args.getWhereColumnMap(), args.getOtNames())), command.getStructure(), command.getMapping());
                         break;
                     case REVERSE_DELETE:
-                        result = new Command(Opreator.REVERSE_DELETE, new SqlExecutorCommandArgs(this.generateReverseDeleteSql(args.getItName(), args.getWhereColumnMap(), args.getOtNames())));
+                        result = new Command(Opreator.REVERSE_DELETE, new SqlExecutorCommandArgs(this.generateReverseDeleteSql(args.getItName(), args.getWhereColumnMap(), args.getOtNames())), command.getStructure(), command.getMapping());
                         break;
                     case SHOW:
-                        result = new Command(Opreator.SHOW, new SqlExecutorCommandArgs(this.generateSelectSql(args.getItName(), args.getColumnNames(), args.getWhereColumnMap(), args.getOtNames())));
+                        result = new Command(Opreator.SHOW, new SqlExecutorCommandArgs(this.generateSelectSql(args.getItName(), args.getColumnNames(), args.getWhereColumnMap(), args.getOtNames())), command.getStructure(), command.getMapping());
                         break;
                     case REVERSE_SHOW:
-                        result = new Command(Opreator.REVERSE_SHOW, new SqlExecutorCommandArgs(this.generateReverseSelectSql(args.getItName(), args.getColumnNames(), args.getWhereColumnMap(), args.getOtNames())));
+                        result = new Command(Opreator.REVERSE_SHOW, new SqlExecutorCommandArgs(this.generateReverseSelectSql(args.getItName(), args.getColumnNames(), args.getWhereColumnMap(), args.getOtNames())), command.getStructure(), command.getMapping());
                         break;
                     case CREATE:
-                        result = new Command(Opreator.CREATE, new SqlExecutorCommandArgs(this.generateCreateTableSql(args.getItName(), args.getColumnNames(), args.getDialect(), args.getOtNames())));
+                        result = new Command(Opreator.CREATE, new SqlExecutorCommandArgs(this.generateCreateTableSql(args.getItName(), args.getColumnNames(), args.getDialect(), args.getOtNames())), command.getStructure(), command.getMapping());
                         break;
                     case REVERSE_CREATE:
-                        result = new Command(Opreator.REVERSE_CREATE, new SqlExecutorCommandArgs(this.generateReverseCreateTableSql(args.getItName(), args.getColumnNames(), args.getDialect(), args.getOtNames())));
+                        result = new Command(Opreator.REVERSE_CREATE, new SqlExecutorCommandArgs(this.generateReverseCreateTableSql(args.getItName(), args.getColumnNames(), args.getDialect(), args.getOtNames())), command.getStructure(), command.getMapping());
                         break;
                     case DROP:
-                        result = new Command(Opreator.DROP, new SqlExecutorCommandArgs(this.generateDropTableSql(args.getItName(), args.getOtNames())));
+                        result = new Command(Opreator.DROP, new SqlExecutorCommandArgs(this.generateDropTableSql(args.getItName(), args.getOtNames())), command.getStructure(), command.getMapping());
                         break;
                     case REVERSE_DROP:
-                        result = new Command(Opreator.REVERSE_DROP, new SqlExecutorCommandArgs(this.generateDropTableSql(args.getItName(), args.getOtNames())));
+                        result = new Command(Opreator.REVERSE_DROP, new SqlExecutorCommandArgs(this.generateDropTableSql(args.getItName(), args.getOtNames())), command.getStructure(), command.getMapping());
                         break;
                     default:
                         throw new UnsupportedOperationException("Unsupport Command Opreator: " + command.getOpreator());

@@ -20,7 +20,7 @@ import java.util.Set;
 public class SyncContext implements Context {
     private Sync sync = new SimpleSync();
     private SyncOpreatorExecutor syncOpreatorExecutor = new SimpleSyncOpreatorExecutor();
-    public static final SyncOpreator SYNC_OPREATOR = new SyncOpreator(0, 1, MappingAttach.getInstance());
+    public static final SyncOpreator SYNC_OPREATOR = new SyncOpreator(MappingAttach.getInstance());
     private MappingManager mappingManager;
     private Connector connector;
     private List<SyncListener> syncListeners = new ArrayList<SyncListener>();

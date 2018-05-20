@@ -207,4 +207,52 @@ public class TableStructure implements Structure, Nameable, Standardable {
         }
         return cns.toArray(new String[cns.size()]);
     }
+
+    public boolean where(Map<String, Object> wheres) {
+        Set<Map.Entry<String, Object>> entries = wheres.entrySet();
+        for (Map.Entry<String, Object> entry : entries) {
+            boolean flag = true;
+            for (ColumnStructure cs : columns) {
+                if (!(cs.getName().equals(entry.getKey()) && cs.getValue().equals(entry.getValue()))) {
+                    flag = false;
+                }
+            }
+            if (flag) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public int compareTo(TableStructure o, List<String> orderByColumns) {
+        if (orderByColumns.size() <= 0) {
+            return 0;
+        }
+        if (o == null) {
+            return 1;
+        }
+        for (String orderByColumn : orderByColumns) {
+            ColumnStructure ics = findColumnStructure(orderByColumn);
+            if (ics != null) {
+                ColumnStructure ocs = o.findColumnStructure(orderByColumn);
+                if (ocs != null) {
+                    int i = ics.compareTo(ocs);
+                    if (i != 0) {
+                        return i;
+                    }
+                }
+            }
+        }
+
+        return 0;
+    }
+
+    public ColumnStructure findColumnStructure(String columnName) {
+        for (ColumnStructure column : columns) {
+            if (column.getName().equals(columnName)) {
+                return column;
+            }
+        }
+        return null;
+    }
 }
