@@ -1,6 +1,5 @@
 package com.wzq.connnector.tagert.index;
 
-import java.lang.ref.SoftReference;
 import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;

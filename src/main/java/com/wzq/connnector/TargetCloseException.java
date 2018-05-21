@@ -1,6 +1,8 @@
 package com.wzq.connnector;
 
-public class TargetCloseException extends RuntimeException {
+import java.io.IOException;
+
+public class TargetCloseException extends IOException {
     public TargetCloseException(String message) {
         super(message);
     }

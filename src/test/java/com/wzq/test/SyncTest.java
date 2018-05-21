@@ -3,7 +3,6 @@ package com.wzq.test;
 import com.alibaba.fastjson.JSON;
 import com.wzq.SyncManager;
 import com.wzq.connnector.SimpleConnector;
-import com.wzq.connnector.tagert.SimpleTarget;
 import com.wzq.core.context.SyncContext;
 import com.wzq.core.context.SyncMappingContext;
 import com.wzq.core.context.SyncTableContext;
@@ -25,13 +24,13 @@ public class SyncTest {
         smm.getMappings().add(mapping);
         // 创建三个目标
         // 己方目标
-        SimpleTarget it = new SimpleTarget();
-        // 己方冗余目标
-        SimpleTarget redundancyIt = new SimpleTarget();
-        // 对方目标
-        SimpleTarget ot = new SimpleTarget();
+//        SimpleTarget it = new SimpleTarget();
+//        // 己方冗余目标
+//        SimpleTarget redundancyIt = new SimpleTarget();
+//        // 对方目标
+//        SimpleTarget ot = new SimpleTarget();
         // 创建一个连接对象
-        SimpleConnector sc = new SimpleConnector(it, redundancyIt, ot);
+        SimpleConnector sc = new SimpleConnector(null, null, null);
         // 创建一个同步上下文
         SyncContext syncContext = new SyncContext(smm, sc);
         // 创建同步管理

@@ -21,9 +21,4 @@ public abstract class AbstractTarget implements Target {
     public void setBatch(int batch) {
         this.batch = batch;
     }
-
-    public void setDialect(Dialect dialect) {
-        this.dialect = dialect;
-    }
-
 }

@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.wzq.SyncManager;
 import com.wzq.connnector.SimpleConnector;
-import com.wzq.connnector.tagert.SimpleTarget;
 import com.wzq.core.context.SyncContext;
 import com.wzq.core.listener.SyncListener;
 import com.wzq.core.structure.Structure;
@@ -131,7 +130,7 @@ public class TemplateMain {
 
         MappingStructure iMappingStructure1 = mapping.getOMappingStructure((MappingStructure) intersection1);
 
-        SimpleConnector simpleConnector = new SimpleConnector(new SimpleTarget(), new SimpleTarget(), new SimpleTarget());
+        SimpleConnector simpleConnector = new SimpleConnector(null, null, null);
 
         SyncManager syncManager = new SyncManager(new SyncContext(smm, simpleConnector));
         syncManager.addListener(new SyncListener() {

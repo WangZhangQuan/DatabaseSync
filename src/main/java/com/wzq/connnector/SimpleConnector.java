@@ -1,6 +1,5 @@
 package com.wzq.connnector;
 
-import com.wzq.connnector.tagert.SimpleTarget;
 import com.wzq.core.command.Command;
 import com.wzq.core.command.Opreator;
 import com.wzq.core.connector.Connector;
@@ -15,8 +14,8 @@ public class SimpleConnector implements Connector {
     private Target it;
     private Target redundancyIt;
     private Target ot;
-    private Target cacheIt = new SimpleTarget();
-    private Target cacheOt = new SimpleTarget();
+    private Target cacheIt;
+    private Target cacheOt;
 
     public SimpleConnector(Target it, Target redundancyIt, Target ot) {
         this.it = it;
