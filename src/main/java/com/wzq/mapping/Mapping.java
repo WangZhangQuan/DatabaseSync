@@ -3,6 +3,7 @@ package com.wzq.mapping;
 import com.alibaba.fastjson.JSONObject;
 import com.wzq.able.SwapBothSidesAble;
 import com.wzq.sql.structure.ColumnStructure;
+import com.wzq.sql.structure.DownTableRelation;
 import com.wzq.sql.structure.MappingStructure;
 import com.wzq.sql.structure.TableStructure;
 import com.wzq.util.KeyValue;
@@ -38,6 +39,16 @@ public class Mapping implements SwapBothSidesAble, Cloneable {
      */
     private List<TableMapping> tableMaps;
 
+    /**
+     * 己方主导表
+     */
+    private String mainIt;
+
+    /**
+     * 对方主导表
+     */
+    private String mainOt;
+
     public String getName() {
         return name;
     }
@@ -62,6 +73,8 @@ public class Mapping implements SwapBothSidesAble, Cloneable {
     public Mapping generateSwapBothSides() {
         Mapping mapping = new Mapping();
         mapping.name = swapName();
+        mapping.mainIt = mainOt;
+        mapping.mainOt = mainIt;
         List<TableMapping> tms = new ArrayList<TableMapping>();
         for (TableMapping tm : this.tableMaps) {
             tms.add(tm.generateSwapBothSides());
@@ -80,7 +93,7 @@ public class Mapping implements SwapBothSidesAble, Cloneable {
     /**
      * 融合 后面的数据差异 后面覆盖前面
      * 影响字段 pt，whereIc，whereOc
-     *
+     * 主导表取this表的
      * @param mapping
      * @return
      */
@@ -503,6 +516,61 @@ public class Mapping implements SwapBothSidesAble, Cloneable {
         return new String[0];
     }
 
+    private static List<TableStructure> findDownITableStructures(Mapping mapping, String itName) {
+        MappingStructure ims = mapping.getIMappingStructure();
+        String[] allItWhereColumns = mapping.getAllItWhereColumns(itName, mapping.getAllOtNames(itName));
+        List<TableStructure> tss = new ArrayList<TableStructure>();
+        for (TableStructure ts : ims.getTables()) {
+            boolean f = false;
+            for (ColumnStructure cs : ts.getColumns()) {
+                for (String aiwc : allItWhereColumns) {
+                    if (cs.getName().equals(aiwc)) {
+                        tss.add(ts);
+                        f = true;
+                        break;
+                    }
+                }
+                if (f) {
+                    break;
+                }
+            }
+        }
+        return tss;
+    }
+
+    public List<TableStructure> findDownItTableStructures(String otName) {
+        return findDownITableStructures(this, otName);
+    }
+
+    public List<TableStructure> findDownOtTableStructures(String otName) {
+        return findDownITableStructures(generateSwapBothSides(), otName);
+    }
+
+    public static void resetIDownTableRelation(Mapping mapping, DownTableRelation dtr) {
+        dtr.clearDowns();
+        List<TableStructure> dits = findDownITableStructures(mapping, dtr.getTs().getName());
+        for (TableStructure dit : dits) {
+            DownTableRelation ddtr = new DownTableRelation(dit);
+            if (dtr.validateAdd(ddtr)) {
+                resetIDownTableRelation(mapping, ddtr);
+            }
+        }
+    }
+
+    public DownTableRelation getIDownTableRelation(String itName) {
+        DownTableRelation dtr = new DownTableRelation(getIMappingStructure().findTable(itName));
+        resetIDownTableRelation(this, dtr);
+        return dtr;
+    }
+
+    public DownTableRelation getODownTableRelation(String otName) {
+        Mapping mapping = generateSwapBothSides();
+        DownTableRelation dtr = new DownTableRelation(mapping.getIMappingStructure().findTable(otName));
+        resetIDownTableRelation(mapping, dtr);
+        return dtr;
+    }
+
+
     private static boolean validateTableName(String name) {
         if (name != null && !"".equals(name)) {
             return true;
@@ -582,11 +650,29 @@ public class Mapping implements SwapBothSidesAble, Cloneable {
     protected Object clone() {
         Mapping m = new Mapping();
         m.name = name;
+        m.mainOt = mainOt;
+        m.mainIt = mainIt;
         List<TableMapping> tms = new ArrayList<TableMapping>();
         for (TableMapping tm : this.tableMaps) {
             tms.add((TableMapping) tm.clone());
         }
         m.tableMaps = tms;
         return m;
+    }
+
+    public String getMainIt() {
+        return mainIt;
+    }
+
+    public void setMainIt(String mainIt) {
+        this.mainIt = mainIt;
+    }
+
+    public String getMainOt() {
+        return mainOt;
+    }
+
+    public void setMainOt(String mainOt) {
+        this.mainOt = mainOt;
     }
 }

@@ -68,14 +68,7 @@ public class HashIndex implements Index {
             List<ArrayListIndex<Object>> s = getIndex(paths);
             ArrayList<Object> os = new ArrayList<Object>();
             for (ArrayListIndex<Object> alio : s) {
-                for (Object o : alio) {
-                    Object x = unSoft(o);
-                    if (v.equals(unSoft(o))) {
-                        os.add(o);
-                    }
-                }
-                alio.removeAll(os);
-                os.clear();
+                deleteArrayList(alio, v);
             }
         } finally {
             readWriteLock.writeLock().unlock();
@@ -110,13 +103,39 @@ public class HashIndex implements Index {
             return count;
         }
         if (unSoft(o) instanceof ArrayListIndex) {
-            List<Object> os = (List<Object>) unSoft(o);
-            for (Object ox : os) {
-                if (unSoft(ox) instanceof HashMapIndex) {
-                    count += deleteIndex(paths, ++s, e, (Map<Object, Object>) unSoft(ox));
+            deleteArrayList((List<Object>)unSoft(o), null);
+        }
+        return count;
+    }
+
+    private static int deleteArrayList(List<Object> al, Object filter) {
+        int count = 0;
+        List<Object> dels = new ArrayList<Object>();
+        for (Object o : al) {
+            if (!(unSoft(o) instanceof HashMapIndex)) {
+                if (filter != null && filter.equals(unSoft(o))) {
+                    dels.add(o);
+                } else {
+                    dels.add(o);
+                }
+            } else {
+                Map<Object, Object> m = (HashMap<Object, Object>) unSoft(o);
+                Collection<Object> values = m.values();
+                for (Object value : values) {
+                    if (unSoft(value) instanceof ArrayListIndex) {
+                        count += deleteArrayList((ArrayList) unSoft(value), filter);
+                    } else {
+                        if (filter != null && filter.equals(unSoft(o))) {
+                            dels.add(o);
+                        } else {
+                            dels.add(o);
+                        }
+                    }
                 }
             }
         }
+        count += dels.size();
+        al.removeAll(dels);
         return count;
     }
 
@@ -223,12 +242,13 @@ public class HashIndex implements Index {
         // 已经找到索引目的地了
         if (s == e) {
             if (unSoft(o) instanceof ArrayListIndex && ((ArrayListIndex) unSoft(o)).size() > 0) {
-                ArrayList alx = (ArrayListIndex) unSoft(o);
-                for (Object a : alx) {
-                    if (!(unSoft(a) instanceof HashMapIndex)) {
-                        vs.add(unSoft(a));
-                    }
-                }
+                ArrayList<Object> alx = (ArrayListIndex) unSoft(o);
+//                for (Object a : alx) {
+//                    if (!(unSoft(a) instanceof HashMapIndex)) {
+//                        vs.add(unSoft(a));
+//                    }
+//                }
+                ergodicArrayList(alx, vs);
             }
         }
         if (unSoft(o) instanceof ArrayListIndex) {
@@ -236,6 +256,24 @@ public class HashIndex implements Index {
             for (Object ox : os) {
                 if (unSoft(ox) instanceof HashMapIndex) {
                     findIndexValues(paths, ++s, e, (Map<Object, Object>) unSoft(ox), vs);
+                }
+            }
+        }
+    }
+
+    private static void ergodicArrayList(List<Object> al, Set<Object> vs) {
+        for (Object o : al) {
+            if (!(unSoft(o) instanceof HashMapIndex)) {
+                vs.add(unSoft(o));
+            } else {
+                Map<Object, Object> m = (HashMap<Object, Object>) unSoft(o);
+                Collection<Object> values = m.values();
+                for (Object value : values) {
+                    if (unSoft(value) instanceof ArrayListIndex) {
+                        ergodicArrayList((ArrayList) unSoft(value), vs);
+                    } else {
+                        vs.add(unSoft(value));
+                    }
                 }
             }
         }

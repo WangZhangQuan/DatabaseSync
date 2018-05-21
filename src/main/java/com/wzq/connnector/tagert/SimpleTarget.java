@@ -9,6 +9,7 @@ import com.wzq.core.command.CommandArgs;
 import com.wzq.core.command.Opreator;
 import com.wzq.core.structure.Structure;
 import com.wzq.mapping.Mapping;
+import com.wzq.sql.structure.DownTableRelation;
 import com.wzq.sql.structure.MappingStructure;
 import com.wzq.sql.structure.TableStructure;
 import com.wzq.util.ColumnComparator;
@@ -38,8 +39,6 @@ public class SimpleTarget extends AbstractTarget {
     private String name = getDefaultCacheName();
 
     private final Map<String, TableStructure> meta = new ConcurrentHashMap<String, TableStructure>();
-    // TODO 使用索引暂时不使用数据缓存
-//    private final Map<String, List<TableStructure>> data = new ConcurrentHashMap<String, List<TableStructure>>();
 
     private final List<Command> dels = new CopyOnWriteArrayList<Command>();
     private final List<Command> incs = new CopyOnWriteArrayList<Command>();
@@ -207,7 +206,7 @@ public class SimpleTarget extends AbstractTarget {
             CommandArgs args = command.getArgs();
             if (args instanceof SqlGeneratorCommandArgs) {
                 SqlGeneratorCommandArgs sargs = (SqlGeneratorCommandArgs) args;
-                structures = find(ms, sargs.getWhereColumnMap(), sargs.getItName());
+                structures = find(command.getOpreator() , command.getMapping(),ms, sargs.getWhereColumnMap());
             }
         } else {
             throw new UnsupportedOperationException("Unsupported operation types of read " + command.getOpreator());
@@ -238,15 +237,31 @@ public class SimpleTarget extends AbstractTarget {
         }
     }
 
-    public Iterable<Structure> find(MappingStructure ms, Map<String, Object> wheres, String... tables) {
-        Object[] index = createIndex(tables[0], wheres);
-        Set<Object> indexValues = hashIndex.findIndexValues(index);
+    public Iterable<Structure> find(Opreator opreator, Mapping mapping, MappingStructure ms, Map<String, Object> wheres) {
+
+        // 获取主导表
+        TableStructure mainTs = null;
+        String[] mainTWhereColumns = null;
+        DownTableRelation odtr = null;
+        if (Opreator.isReverse(opreator)) {
+            ms = mapping.getOMappingStructure(ms);
+            mainTWhereColumns = mapping.getAllOtColumns(mapping.getMainIt(), mapping.getMainOt()).get(mapping.getMainOt());
+            odtr = mapping.getODownTableRelation(mapping.getMainOt());
+        } else {
+            ms.findTable(mapping.getMainIt());
+            mainTWhereColumns = mapping.getAllItWhereColumns(mapping.getMainIt(), mapping.getAllOtNames(mapping.getMainIt()));
+        }
+
         ArrayList<Structure> structures = new ArrayList<Structure>();
+        // 创建主导表索引
+        Object[] index = createIndex(mainTs.getName(), ms.findTableAndColumnValues(mainTs.getName(), mainTWhereColumns));
+        Set<Object> indexValues = hashIndex.findIndexValues(index);
         for (Object indexValue : indexValues) {
             if (indexValue instanceof TableStructure) {
                 TableStructure ts = (TableStructure) indexValue;
-                Set<Map.Entry<String, Object>> entries = wheres.entrySet();
-                for (Map.Entry<String, Object> es : entries) {
+                if (Opreator.isReverse(opreator)) {
+                    // TODO 根据DownTableRelation 查取相关数据表
+                } else {
                     if (ts.where(wheres)) {
                         structures.add(ts);
                     }
@@ -254,13 +269,16 @@ public class SimpleTarget extends AbstractTarget {
             }
         }
         // 对stauctures排序根据where
-        sortTableStructures(structures, getSortedColumns(tables[0], new ArrayList<String>(wheres.keySet())), true);
+        sortTableStructures(structures, getSortedColumns(mapping.getMainIt(), new ArrayList<String>(wheres.keySet())), true);
 
         // 转换成MappingStructure
         List<Structure> mss = new ArrayList<Structure>();
-        Mapping mapping = ms.getMapping();
         for (Structure structure : structures) {
-            mss.add(wrapMappingStructure(mapping, Arrays.asList((TableStructure)structure)));
+            if (Opreator.isReverse(opreator)) {
+                mss.add(mapping.getOMappingStructure(wrapMappingStructure(mapping, Arrays.asList((TableStructure)structure))));
+            } else {
+                mss.add(wrapMappingStructure(mapping, Arrays.asList((TableStructure)structure)));
+            }
         }
 
         return mss;
@@ -351,5 +369,13 @@ public class SimpleTarget extends AbstractTarget {
 
     public void setOpreatorRunClass(Class<? extends OpreatorRun> opreatorRunClass) {
         this.opreatorRunClass = opreatorRunClass;
+    }
+
+    public HashIndex getHashIndex() {
+        return hashIndex;
+    }
+
+    public void setHashIndex(HashIndex hashIndex) {
+        this.hashIndex = hashIndex;
     }
 }
