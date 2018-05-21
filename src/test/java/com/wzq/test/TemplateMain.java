@@ -1,7 +1,5 @@
 package com.wzq.test;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.wzq.SyncManager;
 import com.wzq.connnector.SimpleConnector;
 import com.wzq.core.context.SyncContext;
@@ -17,10 +15,14 @@ import com.wzq.util.FreemarkerUtil;
 import com.wzq.util.KeyValue;
 import com.wzq.util.MapUtils;
 import freemarker.template.Configuration;
+import net.minidev.json.JSONObject;
+import net.minidev.json.JSONValue;
 import org.junit.Test;
 
-import java.io.*;
-import java.util.*;
+import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class TemplateMain {
 
@@ -28,12 +30,12 @@ public class TemplateMain {
     public void t1(){
         FreemarkerUtil fu = new FreemarkerUtil(TemplateMain.class.getResource("/").getPath(), Configuration.VERSION_2_3_23, "utf-8");
         Map<String, Object> model = new HashMap<String, Object>();
-        Mapping mapping = Mapping.parseJson(JSON.parseObject("{name:'u8_订单',mainIt:'t_user',mainOt:'person',tableMaps:[{it:'t_user',ot:'person', columnMaps:[{ic:'tisx',oc:'tix',pt:'java.sql.Timestamp',whereIc:false,whereOc:false},{ic:'tix',oc:'tx',pt:'java.sql.Time',whereIc:false,whereOc:false},{ic:'datex',oc:'dax',pt:'java.sql.Date',whereIc:false,whereOc:false},{ic:'doux',oc:'dx',pt:'java.lang.Double',whereIc:false,whereOc:false},{ic:'flox',oc:'fx',pt:'java.lang.Float',whereIc:false,whereOc:false},{ic:'lonx',oc:'lx',pt:'java.lang.Long',whereIc:false,whereOc:false},{ic:'byx',oc:'bx',pt:'java.lang.Byte',whereIc:false,whereOc:false},{ic:'can',oc:'c',pt:'java.lang.Boolean',whereIc:false,whereOc:false},{ic:'price',oc:'p',pt:'java.math.BigDecimal',whereIc:false,whereOc:false},{ic:'username',oc:'name',pt:'java.lang.String',whereIc:false,whereOc:false},{ic:'userphone',oc:'phone',pt:'java.lang.String',whereIc:true,whereOc:true}]},{it:'t_user',ot:'person_info', columnMaps:[{ic:'remark',oc:'desc',pt:'java.lang.String',whereIc:false,whereOc:false},{ic:'addr',oc:'address',pt:'java.lang.String',whereIc:false,whereOc:false},{ic:'id',oc:'identity',pt:'java.lang.Integer',whereIc:true,whereOc:true}]},{it:'t_user',ot:'person_info_clone', columnMaps:[{ic:'remark',oc:'desc',pt:'java.lang.String',whereIc:false,whereOc:false},{ic:'addr',oc:'address',pt:'java.lang.String',whereIc:false,whereOc:false},{ic:'id',oc:'identity',pt:'java.lang.Integer',whereIc:true,whereOc:true}]}]}"));
+        Mapping mapping = Mapping.parseJson((JSONObject) JSONValue.parse("{name:'u8_订单',mainIt:'t_user',mainOt:'person',tableMaps:[{it:'t_user',ot:'person', columnMaps:[{ic:'tisx',oc:'tix',pt:'java.sql.Timestamp',whereIc:false,whereOc:false},{ic:'tix',oc:'tx',pt:'java.sql.Time',whereIc:false,whereOc:false},{ic:'datex',oc:'dax',pt:'java.sql.Date',whereIc:false,whereOc:false},{ic:'doux',oc:'dx',pt:'java.lang.Double',whereIc:false,whereOc:false},{ic:'flox',oc:'fx',pt:'java.lang.Float',whereIc:false,whereOc:false},{ic:'lonx',oc:'lx',pt:'java.lang.Long',whereIc:false,whereOc:false},{ic:'byx',oc:'bx',pt:'java.lang.Byte',whereIc:false,whereOc:false},{ic:'can',oc:'c',pt:'java.lang.Boolean',whereIc:false,whereOc:false},{ic:'price',oc:'p',pt:'java.math.BigDecimal',whereIc:false,whereOc:false},{ic:'username',oc:'name',pt:'java.lang.String',whereIc:false,whereOc:false},{ic:'userphone',oc:'phone',pt:'java.lang.String',whereIc:true,whereOc:true}]},{it:'t_user',ot:'person_info', columnMaps:[{ic:'remark',oc:'desc',pt:'java.lang.String',whereIc:false,whereOc:false},{ic:'addr',oc:'address',pt:'java.lang.String',whereIc:false,whereOc:false},{ic:'id',oc:'identity',pt:'java.lang.Integer',whereIc:true,whereOc:true}]},{it:'t_user',ot:'person_info_clone', columnMaps:[{ic:'remark',oc:'desc',pt:'java.lang.String',whereIc:false,whereOc:false},{ic:'addr',oc:'address',pt:'java.lang.String',whereIc:false,whereOc:false},{ic:'id',oc:'identity',pt:'java.lang.Integer',whereIc:true,whereOc:true}]}]}"));
         model.put("mapping", mapping);
         Mapping mx = null;
         try {
             String print = fu.print("mapping.json", model);
-            JSONObject js = JSON.parseObject(print);
+            JSONObject js = (JSONObject) JSONValue.parse(print);
             Mapping m = Mapping.parseJson(js);
             mx = m;
             KeyValue<String, String>[][] keyValues = new KeyValue[][]{
@@ -88,32 +90,32 @@ public class TemplateMain {
         String sql = u8_订单.generateUpdateSql(itName, MapUtils.mapFromO(Arrays.asList(u8_订单.getMapping().getAllItColumns(itName, otNames)), PlaceholderValue.getInstance()), MapUtils.mapFromO(Arrays.asList(u8_订单.getMapping().getAllItWhereColumns(itName, otNames)), PlaceholderValue.getInstance()), otNames);
         System.out.println(sql);
         String rsql[] = u8_订单.generateReverseUpdateSql(itName, MapUtils.mapFromO(Arrays.asList(u8_订单.getMapping().getAllItColumns(itName, otNames)), PlaceholderValue.getInstance()), MapUtils.mapFromO(Arrays.asList(u8_订单.getMapping().getAllItWhereColumns(itName, otNames)), PlaceholderValue.getInstance()), otNames);
-        System.out.println(JSON.toJSON(rsql).toString());
+        System.out.println(JSONValue.toJSONString(rsql));
 
         String isql = u8_订单.generateInsertSql(itName, MapUtils.mapFromO(Arrays.asList(u8_订单.getMapping().getAllItColumns(itName, otNames)), PlaceholderValue.getInstance()), otNames);
         System.out.println(isql);
         String risql[] = u8_订单.generateReverseInsertSql(itName, MapUtils.mapFromO(Arrays.asList(u8_订单.getMapping().getAllItColumns(itName, otNames)), PlaceholderValue.getInstance()), otNames);
-        System.out.println(JSON.toJSON(risql).toString());
+        System.out.println(JSONValue.toJSONString(rsql));
 
         String dsql = u8_订单.generateDeleteSql(itName, MapUtils.mapFromO(Arrays.asList(u8_订单.getMapping().getAllItWhereColumns(itName, otNames)), PlaceholderValue.getInstance()), otNames);
         System.out.println(dsql);
         String rdsql[] = u8_订单.generateReverseDeleteSql(itName, MapUtils.mapFromO(Arrays.asList(u8_订单.getMapping().getAllItWhereColumns(itName, otNames)), PlaceholderValue.getInstance()), otNames);
-        System.out.println(JSON.toJSON(rdsql).toString());
+        System.out.println(JSONValue.toJSONString(rsql));
 
         String ssql = u8_订单.generateSelectSql(itName, u8_订单.getMapping().getAllItColumns(itName, otNames), MapUtils.mapFromO(Arrays.asList(u8_订单.getMapping().getAllItWhereColumns(itName, otNames)), PlaceholderValue.getInstance()), otNames);
         System.out.println(ssql);
         String[] srsql = u8_订单.generateReverseSelectSql(itName, u8_订单.getMapping().getAllItColumns(itName, otNames), MapUtils.mapFromO(Arrays.asList(u8_订单.getMapping().getAllItWhereColumns(itName, otNames)), PlaceholderValue.getInstance()), otNames);
-        System.out.println(JSON.toJSON(srsql).toString());
+        System.out.println(JSONValue.toJSONString(rsql));
 
         String drsql = u8_订单.generateDropTableSql(itName, otNames);
         System.out.println(drsql);
         String rdrsql[] = u8_订单.generateReverseDropTableSql(itName, otNames);
-        System.out.println(JSON.toJSON(rdrsql).toString());
+        System.out.println(JSONValue.toJSONString(rsql));
 
         String csql = u8_订单.generateCreateTableSql(itName, u8_订单.getMapping().getAllItColumns(itName, otNames), null, otNames);
         System.out.println(csql);
         String[] crsql = u8_订单.generateReverseCreateTableSql(itName, u8_订单.getMapping().getAllItColumns(itName, otNames), null, otNames);
-        System.out.println(JSON.toJSON(crsql).toString());
+        System.out.println(JSONValue.toJSONString(rsql));
 
         MappingStructure iMappingStructure = mapping.getIMappingStructure();
         MappingStructure oMappingStructure = mapping.getOMappingStructure();

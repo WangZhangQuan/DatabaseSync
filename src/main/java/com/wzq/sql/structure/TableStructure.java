@@ -6,9 +6,10 @@ import com.wzq.core.structure.Structure;
 import com.wzq.util.KeyValue;
 import com.wzq.util.NameUtils;
 
+import java.io.Serializable;
 import java.util.*;
 
-public class TableStructure implements Structure, Nameable, Standardable {
+public class TableStructure implements Structure, Nameable, Standardable, Serializable {
     private String name;
     private List<ColumnStructure> columns;
 

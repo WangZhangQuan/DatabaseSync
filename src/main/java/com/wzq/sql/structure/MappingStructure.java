@@ -13,10 +13,11 @@ import com.wzq.sql.type.Dialect;
 import com.wzq.util.KeyValue;
 import com.wzq.util.NameUtils;
 
+import java.io.Serializable;
 import java.util.*;
 
 
-public class MappingStructure implements Structure, Nameable, Standardable {
+public class MappingStructure implements Structure, Nameable, Standardable, Serializable {
 
     private String name;
 

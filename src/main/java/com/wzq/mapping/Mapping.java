@@ -1,19 +1,22 @@
 package com.wzq.mapping;
 
-import com.alibaba.fastjson.JSONObject;
 import com.wzq.able.SwapBothSidesAble;
 import com.wzq.sql.structure.ColumnStructure;
 import com.wzq.sql.structure.DownTableRelation;
 import com.wzq.sql.structure.MappingStructure;
 import com.wzq.sql.structure.TableStructure;
 import com.wzq.util.KeyValue;
+import net.minidev.json.JSONObject;
+import net.minidev.json.JSONStyle;
+import net.minidev.json.JSONValue;
 
+import java.io.Serializable;
 import java.util.*;
 
 /**
  * 数据库映射关系
  */
-public class Mapping implements SwapBothSidesAble, Cloneable {
+public class Mapping implements SwapBothSidesAble, Cloneable, Serializable {
     public Mapping() {
     }
 
@@ -643,7 +646,7 @@ public class Mapping implements SwapBothSidesAble, Cloneable {
     }
 
     public static Mapping parseJson(JSONObject json) {
-        return json.toJavaObject(Mapping.class);
+        return JSONValue.parse(JSONValue.toJSONString(json), Mapping.class);
     }
 
     @Override

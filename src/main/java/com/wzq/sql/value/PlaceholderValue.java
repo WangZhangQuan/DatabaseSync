@@ -1,6 +1,8 @@
 package com.wzq.sql.value;
 
-public class PlaceholderValue {
+import java.io.Serializable;
+
+public class PlaceholderValue implements Serializable {
     public static final String PLACEHOLDER = "?";
     public static final PlaceholderValue PLACEHOLDER_VALUE = new PlaceholderValue();
 

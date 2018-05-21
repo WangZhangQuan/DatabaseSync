@@ -4,10 +4,12 @@ import com.wzq.able.SwapBothSidesAble;
 import com.wzq.sql.structure.ColumnStructure;
 import com.wzq.sql.value.PlaceholderValue;
 
+import java.io.Serializable;
+
 /**
  * 字段关系映射
  */
-public class ColumnMapping implements SwapBothSidesAble,Cloneable {
+public class ColumnMapping implements SwapBothSidesAble, Cloneable, Serializable {
     public ColumnMapping() {
     }
 

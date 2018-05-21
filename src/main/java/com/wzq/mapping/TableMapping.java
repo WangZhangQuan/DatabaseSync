@@ -5,12 +5,13 @@ import com.wzq.sql.structure.ColumnStructure;
 import com.wzq.sql.structure.MappingStructure;
 import com.wzq.sql.structure.TableStructure;
 
+import java.io.Serializable;
 import java.util.*;
 
 /**
  * TableMapping 数据库表字段映射类
  */
-public class TableMapping implements SwapBothSidesAble, Cloneable {
+public class TableMapping implements SwapBothSidesAble, Cloneable, Serializable {
     public TableMapping(String it, String ot, List<ColumnMapping> columnMaps) {
         this.it = it;
         this.ot = ot;

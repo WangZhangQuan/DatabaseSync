@@ -4,10 +4,11 @@ import com.wzq.able.Nameable;
 import com.wzq.core.structure.Structure;
 import com.wzq.util.KeyValue;
 
+import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-public class ColumnStructure implements Structure, Nameable, Comparable<ColumnStructure> {
+public class ColumnStructure implements Structure, Nameable, Comparable<ColumnStructure>, Serializable {
     private String name;
     private String programType;
     private Object value;
