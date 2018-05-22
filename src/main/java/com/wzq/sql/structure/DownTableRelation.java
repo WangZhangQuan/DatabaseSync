@@ -25,7 +25,7 @@ public class DownTableRelation implements Iterable<DownTableRelation> {
     }
 
     public boolean validateAdd(DownTableRelation dtr) {
-        if (!allDtrs.contains(dtr)) {
+        if (!contains(dtr)) {
             if (dtr.parentDtr != null) {
                 throw new RuntimeException("Already under a certain node: " + dtr);
             }
@@ -39,13 +39,22 @@ public class DownTableRelation implements Iterable<DownTableRelation> {
         }
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof  DownTableRelation) {
-            return this.getTs().getName().equals(((DownTableRelation) obj).getTs().getName());
+    public boolean contains(DownTableRelation dtr) {
+        for (DownTableRelation allDtr : allDtrs) {
+            if (allDtr.getTs().getName().equals(dtr.getTs().getName())) {
+                return true;
+            }
         }
-        return super.equals(obj);
+        return false;
     }
+
+//    @Override
+//    public boolean equals(Object obj) {
+//        if (obj instanceof  DownTableRelation) {
+//            return this.getTs().getName().equals(((DownTableRelation) obj).getTs().getName());
+//        }
+//        return super.equals(obj);
+//    }
 
     public Iterator<DownTableRelation> iterator() {
         return dtrs.iterator();

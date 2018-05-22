@@ -25,6 +25,9 @@ public class MappingStructure implements Structure, Nameable, Standardable, Seri
 
     private Mapping mapping;
 
+    public MappingStructure() {
+    }
+
     public KeyValue<Structure, Structure> differenceSet(Structure structure) {
         // 验证必要参数正确
         MappingStructure s = validateNecessaryUniformity(structure);

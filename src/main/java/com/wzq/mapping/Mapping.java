@@ -8,7 +8,9 @@ import com.wzq.sql.structure.TableStructure;
 import com.wzq.util.KeyValue;
 import net.minidev.json.JSONObject;
 import net.minidev.json.JSONStyle;
+import net.minidev.json.JSONUtil;
 import net.minidev.json.JSONValue;
+import net.minidev.json.parser.ParseException;
 
 import java.io.Serializable;
 import java.util.*;
@@ -646,7 +648,19 @@ public class Mapping implements SwapBothSidesAble, Cloneable, Serializable {
     }
 
     public static Mapping parseJson(JSONObject json) {
-        return JSONValue.parse(JSONValue.toJSONString(json), Mapping.class);
+        try {
+            return JSONValue.parseWithException(json.toJSONString(), Mapping.class);
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Mapping parseJson(String json) {
+        try {
+            return JSONValue.parseWithException(json, Mapping.class);
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

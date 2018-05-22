@@ -19,6 +19,9 @@ public class ColumnStructure implements Structure, Nameable, Comparable<ColumnSt
         this.value = value;
     }
 
+    public ColumnStructure() {
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (super.equals(obj)) {

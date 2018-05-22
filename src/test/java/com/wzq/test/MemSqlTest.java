@@ -14,19 +14,29 @@ public class MemSqlTest {
     private static final String PASS = "";
     private static final String MY_PASS = "root";
 
-    private static final String MEM_URL = "jdbc:mysql://192.168.56.128:3306/test";
-    private static final String MY_URL = "jdbc:mysql://192.168.56.128:3306/test?useUnicode=true&characterEncoding=utf8";
+    private static final String MEM_URL = "jdbc:mysql://192.168.220.128:3307/test";
+    private static final String MY_URL = "jdbc:mysql://192.168.220.128:3306/test?useUnicode=true&characterEncoding=utf8";
     private static final String DRIVER = "com.mysql.cj.jdbc.Driver";
+
+
+    /**
+     * true memsql
+     * false mysql
+     */
+    private boolean f = false;
 
     Connection connection = null;
 
     @Before
     public void b() throws ClassNotFoundException, SQLException {
         Class.forName(DRIVER);
-        // memsql
-        connection = DriverManager.getConnection(MEM_URL, NAME, PASS);
-        // mysql
-//        connection = DriverManager.getConnection(MY_URL, NAME, MY_PASS);
+        if (f) {
+            // memsql
+            connection = DriverManager.getConnection(MEM_URL, NAME, PASS);
+        } else {
+            // mysql
+            connection = DriverManager.getConnection(MY_URL, NAME, MY_PASS);
+        }
     }
 
     @Test
@@ -49,7 +59,7 @@ public class MemSqlTest {
             ps.setFloat(3, (i + random.nextInt(30)) / (random.nextInt(30) + 1));
             ps.setDouble(4 , (i + random.nextInt(30)) / (random.nextInt(30) + 1));
             stringBuilder.delete(0, 3);
-            ps.execute();
+//            ps.execute();
             ps.addBatch();
             if (i % 10000 == 0) {
                 ps.executeBatch();
@@ -153,7 +163,7 @@ public class MemSqlTest {
 
         int i = 0;
         long s = System.currentTimeMillis();
-        for (int j = 0; j < 10; j++) {
+        for (int j = 0; j < 1000; j++) {
             ps.setString(1, names[random.nextInt(9)]);
             ResultSet resultSet = ps.executeQuery();
             while(resultSet.next()) {
@@ -175,8 +185,8 @@ public class MemSqlTest {
 ////            System.out.println(JSONValue.toJSONString(person));
 //        }
 
-        // memsql 驱动8 耗时未测
-        // mysql 驱动8 耗时4807
+        // memsql 驱动8 耗时74445
+        // mysql 驱动8 耗时77451
 
         System.out.println("耗时: " + (e - s));
         System.out.println("查询条数: " + i);
