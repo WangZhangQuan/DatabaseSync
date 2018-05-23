@@ -11,6 +11,11 @@ import com.wzq.core.listener.SyncTableListener;
 import com.wzq.core.sync.SyncOpreator;
 import com.wzq.manager.impl.SimpleMappingManager;
 import com.wzq.mapping.Mapping;
+import com.wzq.target.manager.AbstractTargetX;
+import com.wzq.target.manager.TargetParameter;
+import com.wzq.target.manager.impl.TargetManagerImpl;
+import com.wzq.target.memsql.MemSqlTarget;
+import com.wzq.target.memsql.MemSqlTargetParameter;
 import net.minidev.json.JSONObject;
 import net.minidev.json.JSONValue;
 import net.minidev.json.parser.ParseException;
@@ -32,9 +37,18 @@ public class SyncTest {
 //        // 对方目标
 //        SimpleTarget ot = new SimpleTarget();
         // 创建一个连接对象
-        SimpleConnector sc = new SimpleConnector(null, null, null);
+        TargetManagerImpl targetManager = new TargetManagerImpl();
+        MemSqlTargetParameter root = new MemSqlTargetParameter("root", "", "jdbc:mysql://192.168.220.128:3307/test", "com.mysql.cj.jdbc.Driver");
+        AbstractTargetX it = targetManager.get(root);
+        AbstractTargetX rIt = targetManager.get(root);
+        AbstractTargetX ot = targetManager.get(root);
+        AbstractTargetX cIt = targetManager.get(root);
+        AbstractTargetX cOt = targetManager.get(root);
+
+        SimpleConnector sc = new SimpleConnector(it, rIt, ot, cIt, cOt);
         // 创建一个同步上下文
         SyncContext syncContext = new SyncContext(smm, sc);
+
         // 创建同步管理
         SyncManager syncManager = new SyncManager(syncContext);
         // 添加几个监听器

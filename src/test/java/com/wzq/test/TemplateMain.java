@@ -7,6 +7,7 @@ import com.wzq.core.listener.SyncListener;
 import com.wzq.core.structure.Structure;
 import com.wzq.core.sync.SyncOpreator;
 import com.wzq.generator.MappingSqlGenerator;
+import com.wzq.generator.impl.Sql;
 import com.wzq.manager.impl.SimpleMappingManager;
 import com.wzq.mapping.Mapping;
 import com.wzq.sql.structure.MappingStructure;
@@ -23,6 +24,7 @@ import org.junit.Test;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class TemplateMain {
@@ -88,34 +90,34 @@ public class TemplateMain {
                 "person_info_clone"
         };
         long t1 = System.currentTimeMillis();
-        String sql = u8_订单.generateUpdateSql(itName, MapUtils.mapFromO(Arrays.asList(u8_订单.getMapping().getAllItColumns(itName, otNames)), PlaceholderValue.getInstance()), MapUtils.mapFromO(Arrays.asList(u8_订单.getMapping().getAllItWhereColumns(itName, otNames)), PlaceholderValue.getInstance()), otNames);
+        Sql sql = u8_订单.generateUpdateSql(itName, MapUtils.mapFromO(Arrays.asList(u8_订单.getMapping().getAllItColumns(itName, otNames)), PlaceholderValue.getInstance()), MapUtils.mapFromO(Arrays.asList(u8_订单.getMapping().getAllItWhereColumns(itName, otNames)), PlaceholderValue.getInstance()), otNames);
         System.out.println(sql);
-        String rsql[] = u8_订单.generateReverseUpdateSql(itName, MapUtils.mapFromO(Arrays.asList(u8_订单.getMapping().getAllItColumns(itName, otNames)), PlaceholderValue.getInstance()), MapUtils.mapFromO(Arrays.asList(u8_订单.getMapping().getAllItWhereColumns(itName, otNames)), PlaceholderValue.getInstance()), otNames);
+        List<Sql> rsql = u8_订单.generateReverseUpdateSql(itName, MapUtils.mapFromO(Arrays.asList(u8_订单.getMapping().getAllItColumns(itName, otNames)), PlaceholderValue.getInstance()), MapUtils.mapFromO(Arrays.asList(u8_订单.getMapping().getAllItWhereColumns(itName, otNames)), PlaceholderValue.getInstance()), otNames);
         System.out.println(JSONValue.toJSONString(rsql));
 
-        String isql = u8_订单.generateInsertSql(itName, MapUtils.mapFromO(Arrays.asList(u8_订单.getMapping().getAllItColumns(itName, otNames)), PlaceholderValue.getInstance()), otNames);
+        Sql isql = u8_订单.generateInsertSql(itName, MapUtils.mapFromO(Arrays.asList(u8_订单.getMapping().getAllItColumns(itName, otNames)), PlaceholderValue.getInstance()), otNames);
         System.out.println(isql);
-        String risql[] = u8_订单.generateReverseInsertSql(itName, MapUtils.mapFromO(Arrays.asList(u8_订单.getMapping().getAllItColumns(itName, otNames)), PlaceholderValue.getInstance()), otNames);
+        List<Sql> risql = u8_订单.generateReverseInsertSql(itName, MapUtils.mapFromO(Arrays.asList(u8_订单.getMapping().getAllItColumns(itName, otNames)), PlaceholderValue.getInstance()), otNames);
         System.out.println(JSONValue.toJSONString(rsql));
 
-        String dsql = u8_订单.generateDeleteSql(itName, MapUtils.mapFromO(Arrays.asList(u8_订单.getMapping().getAllItWhereColumns(itName, otNames)), PlaceholderValue.getInstance()), otNames);
+        Sql dsql = u8_订单.generateDeleteSql(itName, MapUtils.mapFromO(Arrays.asList(u8_订单.getMapping().getAllItWhereColumns(itName, otNames)), PlaceholderValue.getInstance()), otNames);
         System.out.println(dsql);
-        String rdsql[] = u8_订单.generateReverseDeleteSql(itName, MapUtils.mapFromO(Arrays.asList(u8_订单.getMapping().getAllItWhereColumns(itName, otNames)), PlaceholderValue.getInstance()), otNames);
+        List<Sql> rdsql = u8_订单.generateReverseDeleteSql(itName, MapUtils.mapFromO(Arrays.asList(u8_订单.getMapping().getAllItWhereColumns(itName, otNames)), PlaceholderValue.getInstance()), otNames);
         System.out.println(JSONValue.toJSONString(rsql));
 
-        String ssql = u8_订单.generateSelectSql(itName, u8_订单.getMapping().getAllItColumns(itName, otNames), MapUtils.mapFromO(Arrays.asList(u8_订单.getMapping().getAllItWhereColumns(itName, otNames)), PlaceholderValue.getInstance()), otNames);
+        Sql ssql = u8_订单.generateSelectSql(itName, u8_订单.getMapping().getAllItColumns(itName, otNames), MapUtils.mapFromO(Arrays.asList(u8_订单.getMapping().getAllItWhereColumns(itName, otNames)), PlaceholderValue.getInstance()), otNames);
         System.out.println(ssql);
-        String[] srsql = u8_订单.generateReverseSelectSql(itName, u8_订单.getMapping().getAllItColumns(itName, otNames), MapUtils.mapFromO(Arrays.asList(u8_订单.getMapping().getAllItWhereColumns(itName, otNames)), PlaceholderValue.getInstance()), otNames);
+        List<Sql> srsql = u8_订单.generateReverseSelectSql(itName, u8_订单.getMapping().getAllItColumns(itName, otNames), MapUtils.mapFromO(Arrays.asList(u8_订单.getMapping().getAllItWhereColumns(itName, otNames)), PlaceholderValue.getInstance()), otNames);
         System.out.println(JSONValue.toJSONString(rsql));
 
-        String drsql = u8_订单.generateDropTableSql(itName, otNames);
+        Sql drsql = u8_订单.generateDropTableSql(itName, otNames);
         System.out.println(drsql);
-        String rdrsql[] = u8_订单.generateReverseDropTableSql(itName, otNames);
+        List<Sql> rdrsql = u8_订单.generateReverseDropTableSql(itName, otNames);
         System.out.println(JSONValue.toJSONString(rsql));
 
-        String csql = u8_订单.generateCreateTableSql(itName, u8_订单.getMapping().getAllItColumns(itName, otNames), null, otNames);
+        Sql csql = u8_订单.generateCreateTableSql(itName, u8_订单.getMapping().getAllItColumns(itName, otNames), null, otNames);
         System.out.println(csql);
-        String[] crsql = u8_订单.generateReverseCreateTableSql(itName, u8_订单.getMapping().getAllItColumns(itName, otNames), null, otNames);
+        List<Sql> crsql = u8_订单.generateReverseCreateTableSql(itName, u8_订单.getMapping().getAllItColumns(itName, otNames), null, otNames);
         System.out.println(JSONValue.toJSONString(rsql));
 
         MappingStructure iMappingStructure = mapping.getIMappingStructure();

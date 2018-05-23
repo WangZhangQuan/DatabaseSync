@@ -1,5 +1,11 @@
 package com.wzq.test;
 
+import com.mysql.cj.MysqlType;
+import com.wzq.core.structure.Structure;
+import com.wzq.target.manager.impl.TargetManagerImpl;
+import com.wzq.target.memsql.MemSqlDialect;
+import com.wzq.target.memsql.MemSqlTarget;
+import com.wzq.target.memsql.MemSqlTargetParameter;
 import net.minidev.json.JSONValue;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,7 +29,7 @@ public class MemSqlTest {
      * true memsql
      * false mysql
      */
-    private boolean f = false;
+    private boolean f = true;
 
     Connection connection = null;
 
@@ -191,5 +197,30 @@ public class MemSqlTest {
         System.out.println("耗时: " + (e - s));
         System.out.println("查询条数: " + i);
 
+    }
+
+    @Test
+    public void t5() throws SQLException, ClassNotFoundException {
+        DatabaseMetaData metaData = connection.getMetaData();
+        ResultSet columns = metaData.getColumns(connection.getCatalog(), "%", "person", "%");
+        MemSqlDialect memSqlDialect = new MemSqlDialect();
+        while (columns.next()) {
+            ResultSetMetaData metaData1 = columns.getMetaData();
+            int columnCount = metaData1.getColumnCount();
+            for (int i = 1; i <= columnCount; i++) {
+                String columnLabel = metaData1.getColumnLabel(i);
+                System.out.println(columnLabel + ":" + columns.getString(columnLabel));
+                System.out.println(memSqlDialect.getSqlTypeString(columns.getInt("DATA_TYPE")));
+                System.out.println(MysqlType.getByJdbcType(columns.getInt("DATA_TYPE")).getName());
+            }
+
+            System.out.println("--------------------------");
+//            System.out.println(columns.getString("COLUMN_NAME"));
+//            System.out.println(columns.getString("TYPE_NAME"));
+
+        }
+
+//        Structure structure = new MemSqlTarget(new TargetManagerImpl(), connection, new MemSqlTargetParameter("", "", "", "")).getStructure(new String[]{"person"}, null);
+//        System.out.println(JSONValue.toJSONString(structure));
     }
 }

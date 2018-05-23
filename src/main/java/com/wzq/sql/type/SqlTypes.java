@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * 关联的SqlTypes类型
  */
 public class SqlTypes {
-    private static final Map<Integer, String> SQL_TYPES_TO_JAVA_TYPES = new HashMap<Integer, String>();
+    public static final Map<Integer, String> SQL_TYPES_TO_JAVA_TYPES = new HashMap<Integer, String>();
 
     static {
         SQL_TYPES_TO_JAVA_TYPES.put(Types.CHAR, String.class.getName());
@@ -35,7 +35,7 @@ public class SqlTypes {
         SQL_TYPES_TO_JAVA_TYPES.put(Types.TIMESTAMP, java.sql.Timestamp.class.getName());
     }
 
-    private static final Map<String, Integer> JAVA_TYPES_TO_SQL_TYPES = new HashMap<String, Integer>();
+    public static final Map<String, Integer> JAVA_TYPES_TO_SQL_TYPES = new HashMap<String, Integer>();
 
     static {
         JAVA_TYPES_TO_SQL_TYPES.put(String.class.getName(), Types.VARCHAR);
@@ -77,46 +77,6 @@ public class SqlTypes {
     }
 
     private static Dialect DIALECT = new Dialect();
-
-    public static String getJavaClassNameBySqlType(Integer sqlType) {
-        return SQL_TYPES_TO_JAVA_TYPES.get(sqlType);
-    }
-
-    public static Integer getSqlTypeByJavaClassName(String javaClassName) {
-        return JAVA_TYPES_TO_SQL_TYPES.get(javaClassName);
-    }
-
-    public static Class<?> getJavaClassBySqlType(Integer sqlType) throws ClassNotFoundException {
-        return Class.forName(SQL_TYPES_TO_JAVA_TYPES.get(sqlType));
-    }
-
-    public static Integer getSqlTypeByJavaClass(Class<?> clazz) {
-        return JAVA_TYPES_TO_SQL_TYPES.get(clazz.getName());
-    }
-
-    public static String getSqlTypeStringBySqlType(Integer sqlType) {
-        return DEFAULT_SQL_TYPES_DIALECT.get(sqlType);
-    }
-
-    public static String getSqlTypeStringByJavaClass(Class<?> clazz) {
-        return getSqlTypeStringBySqlType(getSqlTypeByJavaClass(clazz));
-    }
-
-    public static String getSqlTypeStringByJavaClassName(String javaClassName) {
-        return getSqlTypeStringBySqlType(getSqlTypeByJavaClassName(javaClassName));
-    }
-
-    public static String getSqlTypeStringBySqlType(Integer sqlType, Map<Integer, String> typeDialect) {
-        return typeDialect.get(sqlType);
-    }
-
-    public static String getSqlTypeStringByJavaClass(Class<?> clazz, Map<Integer, String> typeDialect) {
-        return getSqlTypeStringBySqlType(getSqlTypeByJavaClass(clazz), typeDialect);
-    }
-
-    public static String getSqlTypeStringByJavaClassName(String javaClassName, Map<Integer, String> typeDialect) {
-        return getSqlTypeStringBySqlType(getSqlTypeByJavaClassName(javaClassName), typeDialect);
-    }
 
     public static Dialect getDefaultDialect() {
         return DIALECT;

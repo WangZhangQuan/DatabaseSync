@@ -4,10 +4,12 @@ import com.wzq.core.command.Command;
 import com.wzq.core.command.Opreator;
 import com.wzq.command.SqlExecutorCommandArgs;
 import com.wzq.command.SqlGeneratorCommandArgs;
+import com.wzq.generator.impl.Sql;
 import com.wzq.mapping.Mapping;
 import com.wzq.sql.type.Dialect;
 import com.wzq.core.generator.Generator;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -77,7 +79,7 @@ public abstract class MappingSqlGenerator implements Generator {
      * @param otNames        他方表名
      * @return String类型的SQL
      */
-    public abstract String generateUpdateSql(String itName, Map<String, Object> updateItColumn, Map<String, Object> whereColumn, String... otNames);
+    public abstract Sql generateUpdateSql(String itName, Map<String, Object> updateItColumn, Map<String, Object> whereColumn, String... otNames);
 
     /**
      * 反向生成他方更新SQL集
@@ -88,7 +90,7 @@ public abstract class MappingSqlGenerator implements Generator {
      * @param otNames        他方表名
      * @return String类型的SQL
      */
-    public abstract String[] generateReverseUpdateSql(String itName, Map<String, Object> updateItColumn, Map<String, Object> whereColumn, String... otNames);
+    public abstract List<Sql> generateReverseUpdateSql(String itName, Map<String, Object> updateItColumn, Map<String, Object> whereColumn, String... otNames);
 
     /**
      * 生成己方插入SQL
@@ -98,7 +100,7 @@ public abstract class MappingSqlGenerator implements Generator {
      * @param otNames        他方表名
      * @return String类型的SQL
      */
-    public abstract String generateInsertSql(String itName, Map<String, Object> insertItColumn, String... otNames);
+    public abstract Sql generateInsertSql(String itName, Map<String, Object> insertItColumn, String... otNames);
 
     /**
      * 生成己方插入SQL
@@ -108,7 +110,7 @@ public abstract class MappingSqlGenerator implements Generator {
      * @param otNames        他方表名
      * @return String类型的SQL
      */
-    public abstract String[] generateReverseInsertSql(String itName, Map<String, Object> insertItColumn, String... otNames);
+    public abstract List<Sql> generateReverseInsertSql(String itName, Map<String, Object> insertItColumn, String... otNames);
 
     /**
      * 生成己方删除SQL
@@ -118,7 +120,7 @@ public abstract class MappingSqlGenerator implements Generator {
      * @param otNames     他方表名
      * @return String类型的SQL
      */
-    public abstract String generateDeleteSql(String itName, Map<String, Object> whereColumn, String... otNames);
+    public abstract Sql generateDeleteSql(String itName, Map<String, Object> whereColumn, String... otNames);
 
     /**
      * 生成他方删除SQL
@@ -128,7 +130,7 @@ public abstract class MappingSqlGenerator implements Generator {
      * @param otNames     他方表名
      * @return String类型的SQL
      */
-    public abstract String[] generateReverseDeleteSql(String itName, Map<String, Object> whereColumn, String... otNames);
+    public abstract List<Sql> generateReverseDeleteSql(String itName, Map<String, Object> whereColumn, String... otNames);
 
     /**
      * 生成己方查询SQL
@@ -139,7 +141,7 @@ public abstract class MappingSqlGenerator implements Generator {
      * @param otNames         他方表名
      * @return String类型的SQL
      */
-    public abstract String generateSelectSql(String itName, String[] selectItColumns, Map<String, Object> whereColumn, String... otNames);
+    public abstract Sql generateSelectSql(String itName, String[] selectItColumns, Map<String, Object> whereColumn, String... otNames);
 
     /**
      * 生成他方查询SQL
@@ -150,7 +152,7 @@ public abstract class MappingSqlGenerator implements Generator {
      * @param otNames         他方表名
      * @return String类型的SQL
      */
-    public abstract String[] generateReverseSelectSql(String itName, String[] selectItColumns, Map<String, Object> whereColumn, String... otNames);
+    public abstract List<Sql> generateReverseSelectSql(String itName, String[] selectItColumns, Map<String, Object> whereColumn, String... otNames);
 
     /**
      * 生成己方创建表SQL
@@ -161,7 +163,7 @@ public abstract class MappingSqlGenerator implements Generator {
      * @param otNames         他方表名
      * @return String类型的SQL
      */
-    public abstract String generateCreateTableSql(String itName, String[] createItColumns, Dialect dialect, String... otNames);
+    public abstract Sql generateCreateTableSql(String itName, String[] createItColumns, Dialect dialect, String... otNames);
 
     /**
      * 生成他方创建表SQL
@@ -172,7 +174,7 @@ public abstract class MappingSqlGenerator implements Generator {
      * @param otNames         他方表名
      * @return String类型的SQL
      */
-    public abstract String[] generateReverseCreateTableSql(String itName, String[] createItColumns, Dialect dialect, String... otNames);
+    public abstract List<Sql> generateReverseCreateTableSql(String itName, String[] createItColumns, Dialect dialect, String... otNames);
 
     /**
      * 删除己方创建表SQL
@@ -181,7 +183,7 @@ public abstract class MappingSqlGenerator implements Generator {
      * @param otNames 他方表名
      * @return String类型的SQL
      */
-    public abstract String generateDropTableSql(String itName, String... otNames);
+    public abstract Sql generateDropTableSql(String itName, String... otNames);
 
     /**
      * 删除他方创建表SQL
@@ -190,7 +192,7 @@ public abstract class MappingSqlGenerator implements Generator {
      * @param otNames 他方表名
      * @return String类型的SQL
      */
-    public abstract String[] generateReverseDropTableSql(String itName, String... otNames);
+    public abstract List<Sql> generateReverseDropTableSql(String itName, String... otNames);
 
     /**
      * 设置Mapping

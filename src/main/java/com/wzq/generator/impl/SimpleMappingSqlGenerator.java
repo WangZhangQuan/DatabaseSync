@@ -12,6 +12,7 @@ import com.wzq.sql.value.PlaceholderValue;
 import com.wzq.sql.value.SqlExpressionValue;
 import com.wzq.util.ColumnComparator;
 import com.wzq.util.KeyValue;
+import com.wzq.util.ListUtils;
 import com.wzq.util.MapUtils;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.NullValue;
@@ -39,6 +40,8 @@ public class SimpleMappingSqlGenerator extends MappingSqlGenerator {
 
     public static final String DROP_TABLE_TYPE = "TABLE";
 
+    private static final ArrayList<Sql> NULL = new ArrayList<Sql>(0);
+
     private Mapping mapping;
 
     private Mapping reverseMapping;
@@ -58,60 +61,63 @@ public class SimpleMappingSqlGenerator extends MappingSqlGenerator {
         return mapping;
     }
 
-    public String generateUpdateSql(String itName, String[] updateItColumns, String[] whereColumns, String... otNames) {
+    public Sql generateUpdateSql(String itName, String[] updateItColumns, String[] whereColumns, String... otNames) {
         return generateUpdateSql(itName, MapUtils.mapFromO(Arrays.asList(updateItColumns), PlaceholderValue.getInstance()), MapUtils.mapFromO(Arrays.asList(whereColumns), PlaceholderValue.getInstance()), otNames);
     }
 
-    public String generateUpdateSql(String itName, Map<String, Object> updateItColumn, Map<String, Object> whereColumn, String... otNames) {
-        if (validateItNameAndOtNames(itName, otNames) && updateItColumn != null && updateItColumn.size() > 0) { // 存在更新的字段
+    public Sql generateUpdateSql(String itName, Map<String, Object> updateItColumn, Map<String, Object> whereColumn, String... otNames) {
+        if (validateItNameAndOtNames(itName, otNames) && updateItColumn != null && !updateItColumn.isEmpty()) { // 存在更新的字段
             String[] allItColumns = mapping.getAllItColumns(itName, otNames);
             if (allItColumns.length > 0) { // 存在更新的字段
                 Set<String> aicSet = new HashSet<String>(Arrays.asList(allItColumns));
                 Set<String> uicSet = updateItColumn.keySet();
                 aicSet.retainAll(uicSet); // 求交集
-                if (aicSet.size() > 0) { // 存在更新的字段
+                if (!aicSet.isEmpty()) { // 存在更新的字段
+                    // 保存的参数列表
+                    List<KeyValue<String, Object>> parameters = new ArrayList<KeyValue<String, Object>>();
                     Update update = new Update();
                     Table table = wrapTableName(itName);
                     update.setTable(table);
                     KeyValue<List<String>, List<Object>> llkv = MapUtils.mapSplit(MapUtils.mapIn(updateItColumn, aicSet));
                     List<Column> cs = wrapColumnNames(table, llkv.getKey().toArray(new String[llkv.getKey().size()]));
                     update.setColumns(cs);
-                    update.setExpressions(wrapColumnValues(cs, llkv.getValue()));
+                    update.setExpressions(wrapColumnValues(cs, ListUtils.newListO(llkv.getValue().size(), PlaceholderValue.PLACEHOLDER_VALUE)));
+                    // 添加参数
+                    parameters.addAll(parameters(cs, llkv.getValue()));
                     String[] aiwcs = mapping.getAllItWhereColumns(itName, otNames);
                     // 设置过滤条件
                     Set<String> aiwcsSet = new HashSet<String>(Arrays.asList(aiwcs));
                     Set<String> wcsSet = whereColumn.keySet();
                     aiwcsSet.retainAll(wcsSet);
-                    if (aiwcsSet.size() > 0) { // 存在过滤条件
-                        KeyValue<List<String>, List<Object>> wllkv = MapUtils.mapSplit(MapUtils.mapIn(whereColumn, aiwcsSet));
-                        update.setWhere(wrapWheresValues(wrapColumnNames(table, wllkv.getKey().toArray(new String[wllkv.getKey().size()])), wllkv.getValue()));
+                    if (!aiwcsSet.isEmpty()) { // 存在过滤条件
+                        update.setWhere(wrapWhereExpressions(whereColumn, parameters, table, aiwcsSet));
                     }
                     StatementDeParser statementDeParser = new StatementDeParser(new StringBuffer());
                     statementDeParser.visit(update);
-                    return statementDeParser.getBuffer().toString();
+                    return new Sql(statementDeParser.getBuffer().toString(), parameters);
                 }
             }
         }
         return null;
     }
 
-    public String[] generateReverseUpdateSql(String itName, String[] updateItColumns, String[] whereColumns, String... otNames) {
+    public List<Sql> generateReverseUpdateSql(String itName, String[] updateItColumns, String[] whereColumns, String... otNames) {
         return generateReverseUpdateSql(itName, MapUtils.mapFromO(Arrays.asList(updateItColumns), PlaceholderValue.getInstance()), MapUtils.mapFromO(Arrays.asList(whereColumns), PlaceholderValue.getInstance()), otNames);
     }
 
-    public String[] generateReverseUpdateSql(String itName, Map<String, Object> updateItColumn, Map<String, Object> whereColumn, String... otNames) {
-        if (validateItNameAndOtNames(itName, otNames) && updateItColumn != null && updateItColumn.size() > 0) { // 存在更新的字段
+    public List<Sql> generateReverseUpdateSql(String itName, Map<String, Object> updateItColumn, Map<String, Object> whereColumn, String... otNames) {
+        if (validateItNameAndOtNames(itName, otNames) && updateItColumn != null && !updateItColumn.isEmpty()) { // 存在更新的字段
             String[] aons = mapping.getAllOtNames(itName);
             Set<String> aonsSet = new HashSet<String>(Arrays.asList(aons));
             Set<String> onsSet = new HashSet<String>(Arrays.asList(otNames));
             aonsSet.retainAll(onsSet);
-            if (aonsSet.size() > 0) { // 存在更新的表
+            if (!aonsSet.isEmpty()) { // 存在更新的表
                 String[] aonsx = aonsSet.toArray(new String[aonsSet.size()]);
                 Set<String> cks = updateItColumn.keySet();
                 Map<String, ColumnMapping[]> ocms = mapping.getOtColumnMappings(itName, cks.toArray(new String[cks.size()]), aonsx);
                 Set<String> vs = whereColumn.keySet();
                 Map<String, ColumnMapping[]> ocwms = mapping.getOtColumnMappings(itName, vs.toArray(new String[vs.size()]), aonsx);
-                List<String> sqls = new ArrayList<String>(aonsSet.size());
+                List<Sql> sqls = new ArrayList<Sql>(aonsSet.size());
                 MappingSqlGenerator rg = getReverseGenerater();
                 for (Map.Entry<String, ColumnMapping[]> entry : ocms.entrySet()) {
                     if (entry.getValue() != null && entry.getValue().length > 0) { // 验证此表是否有更新的字段
@@ -122,25 +128,26 @@ public class SimpleMappingSqlGenerator extends MappingSqlGenerator {
                         sqls.add(rg.generateUpdateSql(entry.getKey(), reverseValues(entry.getValue(), updateItColumn), reverseValues(wcns, whereColumn), itName));
                     }
                 }
-                return sqls.toArray(new String[sqls.size()]);
+                return sqls;
             }
         }
-        return new String[0];
+        return NULL;
     }
 
-    public String generateInsertSql(String itName, String[] insertItColumns, String... otNames) {
+    public Sql generateInsertSql(String itName, String[] insertItColumns, String... otNames) {
         return generateInsertSql(itName, MapUtils.mapFromO(Arrays.asList(insertItColumns), PlaceholderValue.getInstance()), otNames);
     }
 
-    public String generateInsertSql(String itName, Map<String, Object> insertItColumn, String... otNames) {
-        if (validateItNameAndOtNames(itName, otNames) && insertItColumn != null && insertItColumn.size() > 0) { // 存在插入的字段
+    public Sql generateInsertSql(String itName, Map<String, Object> insertItColumn, String... otNames) {
+        if (validateItNameAndOtNames(itName, otNames) && insertItColumn != null && !insertItColumn.isEmpty()) { // 存在插入的字段
             String[] allItColumns = mapping.getAllItColumns(itName, otNames);
             if (allItColumns.length > 0) { // 存在插入的字段
+                List<KeyValue<String, Object>> parameters = new ArrayList<KeyValue<String, Object>>();
                 Set<String> aicSet = new HashSet<String>(Arrays.asList(allItColumns));
                 Set<String> ks = insertItColumn.keySet();
                 Set<String> uicSet = new HashSet<String>(Arrays.asList(ks.toArray(new String[ks.size()])));
                 aicSet.retainAll(uicSet); // 求交集
-                if (aicSet.size() > 0) { // 存在插入的字段
+                if (!aicSet.isEmpty()) { // 存在插入的字段
                     Insert insert = new Insert();
                     Table table = wrapTableName(itName);
                     KeyValue<List<String>, List<Object>> llkv = MapUtils.mapSplit(MapUtils.mapIn(insertItColumn, aicSet));
@@ -148,50 +155,53 @@ public class SimpleMappingSqlGenerator extends MappingSqlGenerator {
                     insert.setTable(table);
                     insert.setColumns(cs);
                     ExpressionList el = new ExpressionList();
-                    el.setExpressions(wrapColumnValues(cs, llkv.getValue()));
+                    el.setExpressions(wrapColumnValues(cs, ListUtils.newListO(llkv.getValue().size(), PlaceholderValue.PLACEHOLDER_VALUE)));
+                    // 添加参数
+                    parameters.addAll(parameters(cs, llkv.getValue()));
                     insert.setItemsList(el);
-                    return insert.toString();
+                    return new Sql(insert.toString(), parameters);
                 }
             }
         }
         return null;
     }
 
-    public String[] generateReverseInsertSql(String itName, String[] insertItColumns, String... otNames) {
+    public List<Sql> generateReverseInsertSql(String itName, String[] insertItColumns, String... otNames) {
         return generateReverseInsertSql(itName, MapUtils.mapFromO(Arrays.asList(insertItColumns), PlaceholderValue.getInstance()), otNames);
     }
 
-    public String[] generateReverseInsertSql(String itName, Map<String, Object> insertItColumn, String... otNames) {
-        if (validateItNameAndOtNames(itName, otNames) && insertItColumn != null && insertItColumn.size() > 0) { // 存在插入的字段
+    public List<Sql> generateReverseInsertSql(String itName, Map<String, Object> insertItColumn, String... otNames) {
+        if (validateItNameAndOtNames(itName, otNames) && insertItColumn != null && !insertItColumn.isEmpty()) { // 存在插入的字段
             String[] aons = mapping.getAllOtNames(itName);
             Set<String> aonsSet = new HashSet<String>(Arrays.asList(aons));
             Set<String> onsSet = new HashSet<String>(Arrays.asList(otNames));
             aonsSet.retainAll(onsSet);
-            if (aonsSet.size() > 0) { // 存在插入的表
+            if (!aonsSet.isEmpty()) { // 存在插入的表
                 String[] aonsx = aonsSet.toArray(new String[aonsSet.size()]);
                 Set<String> ks = insertItColumn.keySet();
                 Map<String, ColumnMapping[]> moc = mapping.getOtColumnMappings(itName, ks.toArray(new String[ks.size()]), aonsx);
-                List<String> sqls = new ArrayList<String>(aonsSet.size());
+                List<Sql> sqls = new ArrayList<Sql>(aonsSet.size());
                 MappingSqlGenerator rg = getReverseGenerater();
                 for (Map.Entry<String, ColumnMapping[]> entry : moc.entrySet()) {
                     if (entry.getValue() != null && entry.getValue().length > 0) { // 验证此表是否有插入的字段
                         sqls.add(rg.generateInsertSql(entry.getKey(), reverseValues(entry.getValue(), insertItColumn), itName));
                     }
                 }
-                return sqls.toArray(new String[sqls.size()]);
+                return sqls;
             }
         }
-        return new String[0];
+        return NULL;
     }
 
-    public String generateDeleteSql(String itName, String[] whereColumns, String... otNames) {
+    public Sql generateDeleteSql(String itName, String[] whereColumns, String... otNames) {
         return generateDeleteSql(itName, MapUtils.mapFromO(Arrays.asList(whereColumns), PlaceholderValue.getInstance()), otNames);
     }
 
-    public String generateDeleteSql(String itName, Map<String, Object> whereColumn, String... otNames) {
+    public Sql generateDeleteSql(String itName, Map<String, Object> whereColumn, String... otNames) {
         if (validateItNameAndOtNames(itName, otNames)) {
             List<TableMapping> tms = mapping.findByItNameAndOtNames(itName, otNames);
-            if (tms != null && tms.size() > 0) {
+            if (tms != null && !tms.isEmpty()) {
+                List<KeyValue<String, Object>> parameters = new ArrayList<KeyValue<String, Object>>();
                 Delete delete = new Delete();
                 Table table = wrapTableName(itName);
                 delete.setTable(table);
@@ -201,27 +211,26 @@ public class SimpleMappingSqlGenerator extends MappingSqlGenerator {
                 Set<String> ks = whereColumn.keySet();
                 Set<String> wcsSet = new HashSet<String>(Arrays.asList(ks.toArray(new String[ks.size()])));
                 aiwcsSet.retainAll(wcsSet);
-                if (aiwcsSet.size() > 0) { // 存在过滤条件
-                    KeyValue<List<String>, List<Object>> llkv = MapUtils.mapSplit(MapUtils.mapIn(whereColumn, aiwcsSet));
-                    delete.setWhere(wrapWheresValues(wrapColumnNames(table, llkv.getKey().toArray(new String[llkv.getKey().size()])), llkv.getValue()));
+                if (!aiwcsSet.isEmpty()) { // 存在过滤条件
+                    delete.setWhere(wrapWhereExpressions(whereColumn, parameters, table, aiwcsSet));
                 }
-                return delete.toString();
+                return new Sql(delete.toString(), parameters);
             }
         }
         return null;
     }
 
-    public String[] generateReverseDeleteSql(String itName, Map<String, Object> whereColumn, String... otNames) {
+    public List<Sql> generateReverseDeleteSql(String itName, Map<String, Object> whereColumn, String... otNames) {
         if (validateItNameAndOtNames(itName, otNames)) {
             String[] aons = mapping.getAllOtNames(itName);
             Set<String> aonsSet = new HashSet<String>(Arrays.asList(aons));
             Set<String> onsSet = new HashSet<String>(Arrays.asList(otNames));
             aonsSet.retainAll(onsSet);
-            if (aonsSet.size() > 0) { // 存在删除数据的表
+            if (!aonsSet.isEmpty()) { // 存在删除数据的表
                 String[] aonsx = aonsSet.toArray(new String[aonsSet.size()]);
                 Set<String> ks = whereColumn.keySet();
                 Map<String, ColumnMapping[]> owc = mapping.getOtWhereMappingColumns(itName, ks.toArray(new String[ks.size()]), aonsx);
-                List<String> sqls = new ArrayList<String>(aonsSet.size());
+                List<Sql> sqls = new ArrayList<Sql>(aonsSet.size());
                 MappingSqlGenerator rg = getReverseGenerater();
                 for (String aon : aons) {
                     ColumnMapping[] wcns = owc.get(aon);
@@ -230,23 +239,24 @@ public class SimpleMappingSqlGenerator extends MappingSqlGenerator {
                     }
                     sqls.add(rg.generateDeleteSql(aon, reverseValues(wcns, whereColumn), itName));
                 }
-                return sqls.toArray(new String[sqls.size()]);
+                return sqls;
             }
         }
-        return new String[0];
+        return NULL;
     }
 
-    public String generateSelectSql(String itName, String[] selectItColumns, String[] whereColumns, String... otNames) {
+    public Sql generateSelectSql(String itName, String[] selectItColumns, String[] whereColumns, String... otNames) {
         return generateSelectSql(itName, selectItColumns, MapUtils.mapFromO(Arrays.asList(whereColumns), PlaceholderValue.getInstance()), otNames);
     }
 
-    public String generateSelectSql(String itName, String[] selectItColumns, Map<String, Object> whereColumn, String... otNames) {
+    public Sql generateSelectSql(String itName, String[] selectItColumns, Map<String, Object> whereColumn, String... otNames) {
         if (validateItNameAndOtNames(itName, otNames)) {
             String[] allItColumns = mapping.getAllItColumns(itName, otNames);
             Set<String> aicSet = new HashSet<String>(Arrays.asList(allItColumns));
             Set<String> sicSet = new HashSet<String>(Arrays.asList(selectItColumns));
             aicSet.retainAll(sicSet);
-            if (aicSet.size() > 0) { // 判断是否存在读取的字段
+            if (!aicSet.isEmpty()) { // 判断是否存在读取的字段
+                List<KeyValue<String, Object>> parameters = new ArrayList<KeyValue<String, Object>>();
                 Select select = new Select();
                 Table table = wrapTableName(itName);
                 PlainSelect ps = new PlainSelect();
@@ -261,28 +271,27 @@ public class SimpleMappingSqlGenerator extends MappingSqlGenerator {
                 Set<String> ks = whereColumn.keySet();
                 Set<String> wcSet = new HashSet<String>(Arrays.asList(ks.toArray(new String[ks.size()])));
                 aiwcSet.retainAll(wcSet);
-                if (aiwcSet.size() > 0) { // 判断是否存在过滤条件
-                    KeyValue<List<String>, List<Object>> llkv = MapUtils.mapSplit(MapUtils.mapIn(whereColumn, aiwcSet));
-                    ps.setWhere(wrapWheresValues(wrapColumnNames(table, llkv.getKey().toArray(new String[llkv.getKey().size()])), llkv.getValue()));
+                if (!aiwcSet.isEmpty()) { // 判断是否存在过滤条件
+                    ps.setWhere(wrapWhereExpressions(whereColumn, parameters, table, aiwcSet));
                 }
                 select.setSelectBody(ps);
-                return select.toString();
+                return new Sql(select.toString(), parameters);
             }
         }
         return null;
     }
 
-    public String[] generateReverseSelectSql(String itName, String[] selectItColumns, String[] whereColumns, String... otNames) {
+    public List<Sql> generateReverseSelectSql(String itName, String[] selectItColumns, String[] whereColumns, String... otNames) {
         return generateReverseSelectSql(itName, selectItColumns, MapUtils.mapFromO(Arrays.asList(whereColumns), PlaceholderValue.getInstance()), otNames);
     }
 
-    public String[] generateReverseSelectSql(String itName, String[] selectItColumns, Map<String, Object> whereColumn, String... otNames) {
+    public List<Sql> generateReverseSelectSql(String itName, String[] selectItColumns, Map<String, Object> whereColumn, String... otNames) {
         if (validateItNameAndOtNames(itName, otNames)) {
             String[] allItColumns = mapping.getAllItColumns(itName, otNames);
             Set<String> aicSet = new HashSet<String>(Arrays.asList(allItColumns));
             Set<String> sicSet = new HashSet<String>(Arrays.asList(selectItColumns));
             aicSet.retainAll(sicSet);
-            if (aicSet.size() > 0) { // 判断是否存在读取的字段
+            if (!aicSet.isEmpty()) { // 判断是否存在读取的字段
                 Map<String, String[]> otColumns = mapping.getOtColumns(itName, aicSet.toArray(new String[aicSet.size()]), otNames);
                 String[] aiwcs = mapping.getAllItWhereColumns(itName, otNames);
                 Set<String> aiwcSet = new HashSet<String>(Arrays.asList(aiwcs));
@@ -290,11 +299,11 @@ public class SimpleMappingSqlGenerator extends MappingSqlGenerator {
                 Set<String> wcSet = new HashSet<String>(Arrays.asList(ks.toArray(new String[ks.size()])));
                 aiwcSet.retainAll(wcSet);
                 Map<String, ColumnMapping[]> otWhereColumns = null;
-                if (aiwcSet.size() > 0) {
+                if (!aiwcSet.isEmpty()) {
                     otWhereColumns = mapping.getOtWhereMappingColumns(itName, aiwcSet.toArray(new String[aiwcSet.size()]), otNames);
                 }
                 Set<Map.Entry<String, String[]>> entries = otColumns.entrySet();
-                List<String> sqls = new ArrayList<String>();
+                List<Sql> sqls = new ArrayList<Sql>();
                 MappingSqlGenerator rg = getReverseGenerater();
                 for (Map.Entry<String, String[]> entry : entries) {
                     ColumnMapping[] cwcs = null;
@@ -307,19 +316,19 @@ public class SimpleMappingSqlGenerator extends MappingSqlGenerator {
 
                     sqls.add(rg.generateSelectSql(entry.getKey(), entry.getValue(), reverseValues(cwcs, whereColumn), itName));
                 }
-                return sqls.toArray(new String[sqls.size()]);
+                return sqls;
             }
         }
-        return new String[0];
+        return NULL;
     }
 
-    public String generateCreateTableSql(String itName, String[] createItColumns, Dialect dialect, String... otNames) {
+    public Sql generateCreateTableSql(String itName, String[] createItColumns, Dialect dialect, String... otNames) {
         if (validateItNameAndOtNames(itName, otNames)) {
             String[] allItColumns = mapping.getAllItColumns(itName, otNames);
             Set<String> aicSet = new HashSet<String>(Arrays.asList(allItColumns));
             Set<String> cicSet = new HashSet<String>(Arrays.asList(createItColumns));
             aicSet.retainAll(cicSet);
-            if (aicSet.size() > 0) { // 判断是否存在创建的字段
+            if (!aicSet.isEmpty()) { // 判断是否存在创建的字段
                 HashSet<String> msc = new HashSet<String>();
                 CreateTable createTable = new CreateTable();
                 createTable.setTable(wrapTableName(itName));
@@ -346,58 +355,58 @@ public class SimpleMappingSqlGenerator extends MappingSqlGenerator {
                 if (createTable.getColumnDefinitions().size() <= 0) {
                     return null;
                 }
-                return createTable.toString();
+                return new Sql(createTable.toString());
             }
         }
         return null;
     }
 
-    public String[] generateReverseCreateTableSql(String itName, String[] createItColumns, Dialect dialect, String... otNames) {
+    public List<Sql> generateReverseCreateTableSql(String itName, String[] createItColumns, Dialect dialect, String... otNames) {
         if (validateItNameAndOtNames(itName, otNames)) {
             String[] allItColumns = mapping.getAllItColumns(itName, otNames);
             Set<String> aicSet = new HashSet<String>(Arrays.asList(allItColumns));
             Set<String> cicSet = new HashSet<String>(Arrays.asList(createItColumns));
             aicSet.retainAll(cicSet);
-            if (aicSet.size() > 0) { // 判断是否存在创建的字段
+            if (!aicSet.isEmpty()) { // 判断是否存在创建的字段
                 Map<String, String[]> ocs = mapping.getOtColumns(itName, aicSet.toArray(new String[aicSet.size()]), otNames);
                 MappingSqlGenerator rg = getReverseGenerater();
                 Set<Map.Entry<String, String[]>> entries = ocs.entrySet();
-                List<String> sqls = new ArrayList<String>(entries.size());
+                List<Sql> sqls = new ArrayList<Sql>(entries.size());
                 for (Map.Entry<String, String[]> entry : entries) {
                     sqls.add(rg.generateCreateTableSql(entry.getKey(), entry.getValue(), dialect, itName));
                 }
-                return sqls.toArray(new String[sqls.size()]);
+                return sqls;
             }
         }
-        return new String[0];
+        return NULL;
     }
 
-    public String generateDropTableSql(String itName, String... otNames) {
+    public Sql generateDropTableSql(String itName, String... otNames) {
         if (validateItNameAndOtNames(itName, otNames)) {
             List<TableMapping> binaon = mapping.findByItNameAndOtNames(itName, otNames);
             if (binaon != null) {
                 Drop drop = new Drop();
                 drop.setName(itName);
                 drop.setType(DROP_TABLE_TYPE);
-                return drop.toString();
+                return new Sql(drop.toString());
             }
         }
         return null;
     }
 
-    public String[] generateReverseDropTableSql(String itName, String... otNames) {
+    public List<Sql> generateReverseDropTableSql(String itName, String... otNames) {
         if (validateItNameAndOtNames(itName, otNames)) {
             List<TableMapping> binaon = mapping.findByItNameAndOtNames(itName, otNames);
-            List<String> sqls = new ArrayList<String>();
+            List<Sql> sqls = new ArrayList<Sql>();
             for (TableMapping tm : binaon) {
                 Drop drop = new Drop();
                 drop.setName(tm.getOt());
                 drop.setType(DROP_TABLE_TYPE);
-                sqls.add(drop.toString());
+                sqls.add(new Sql(drop.toString()));
             }
-            return sqls.toArray(new String[sqls.size()]);
+            return sqls;
         }
-        return new String[0];
+        return NULL;
     }
 
     private static Map<String, Object> reverseValues(ColumnMapping[] mappings, Map<String, Object> values) {
@@ -416,7 +425,7 @@ public class SimpleMappingSqlGenerator extends MappingSqlGenerator {
     }
 
     private static ColDataType wrapColumnProgramType(String pt, Dialect dialect) {
-        Integer st = SqlTypes.getSqlTypeByJavaClassName(pt);
+        Integer st = dialect.getSqlTypeByJavaClassName(pt);
         String sts = dialect.getSqlTypeString(st);
         if (sts != null) {
             ColDataType cdt = new ColDataType();
@@ -463,7 +472,7 @@ public class SimpleMappingSqlGenerator extends MappingSqlGenerator {
     private static Expression wrapWheresValues(List<Column> wheres, List<Object> values) {
         Expression ae = null;
         for (int i = 0; i < wheres.size(); ++i) {
-            if (values.size() > i) {
+            if (!values.isEmpty()) {
                 Expression te = wrapWhereValue(wheres.get(i), wrapColumnValue(values.get(i)));
                 if (i > 0) {
                     ae = new AndExpression(ae, te);
@@ -484,8 +493,15 @@ public class SimpleMappingSqlGenerator extends MappingSqlGenerator {
 
     private static List<Expression> wrapColumnValues(List<Column> cs, List<Object> values) {
         List<Expression> es = new ArrayList<Expression>();
+        int size = 0;
+        if (values != null) {
+            size = values.size();
+        }
         for (int i = 0; i < cs.size(); ++i) {
-            Object o = values.get(i);
+            Object o = null;
+            if (i < size) {
+               o = values.get(i);
+            }
             es.add(wrapColumnValue(o));
         }
         return es;
@@ -525,6 +541,20 @@ public class SimpleMappingSqlGenerator extends MappingSqlGenerator {
         return wrapColumnValues(cs, values);
     }
 
+    private static List<KeyValue<String, Object>> parameters(List<Column> cs, List<Object> os) {
+        int size = cs.size();
+        int osize = os.size();
+        List<KeyValue<String, Object>> lkv = new ArrayList<KeyValue<String, Object>>(size);
+        for (int i = 0; i < size; i++) {
+            Object o = null;
+            if (i < osize) {
+                o = os.get(i);
+            }
+            lkv.add(new KeyValue<String, Object>(cs.get(i).getWholeColumnName(), o));
+        }
+        return lkv;
+    }
+
     public void setMapping(Mapping mapping) {
         this.mapping = mapping;
         this.reverseMapping = mapping.generateSwapBothSides();
@@ -538,5 +568,13 @@ public class SimpleMappingSqlGenerator extends MappingSqlGenerator {
             ((SimpleMappingSqlGenerator) reverseGenerater).mapping = reverseMapping;
             return reverseGenerater;
         }
+    }
+
+    private static Expression wrapWhereExpressions(Map<String, Object> whereColumn, List<KeyValue<String, Object>> parameters, Table table, Set<String> aiwcsSet) {
+        KeyValue<List<String>, List<Object>> wllkv = MapUtils.mapSplit(MapUtils.mapIn(whereColumn, aiwcsSet));
+        List<Column> columns = wrapColumnNames(table, wllkv.getKey().toArray(new String[wllkv.getKey().size()]));
+        // 添加参数
+        parameters.addAll(parameters(columns, ListUtils.newListO(wllkv.getValue().size(), PlaceholderValue.PLACEHOLDER_VALUE)));
+        return wrapWheresValues(columns, wllkv.getValue());
     }
 }
