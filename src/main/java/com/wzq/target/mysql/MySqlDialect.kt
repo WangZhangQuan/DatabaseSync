@@ -1,16 +1,20 @@
-package com.wzq.target.memsql
+package com.wzq.target.mysql
 
 import com.wzq.sql.type.Dialect
 import org.apache.commons.lang3.ClassUtils
+import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.reflect.MethodUtils
 
-class MemSqlDialect : Dialect() {
+class MySqlDialect : Dialect() {
 
     object Constant {
         const val MYSQL_TYPE_CLASS = "com.mysql.cj.MysqlType"
         const val GET_BY_JDBC_TYPE = "getByJdbcType"
         const val GET_CLASS_NAME = "getClassName"
         const val GET_NAME = "getName"
+        const val GET_PRECISION = "getPrecision"
+        const val IS_DECIMAL = "isDecimal"
+        const val IS_ALLOWED = "isAllowed"
 
         const val DATA_TYPE = "DATA_TYPE"
         const val COLUMN_NAME = "COLUMN_NAME"
@@ -20,7 +24,14 @@ class MemSqlDialect : Dialect() {
 
     override fun getSqlTypeString(sqlType: Int?): String {
         try {
-            return MethodUtils.invokeMethod(MethodUtils.invokeStaticMethod(mysqlType, Constant.GET_BY_JDBC_TYPE, sqlType), Constant.GET_NAME) as String
+            //
+            val invokeStaticMethod = MethodUtils.invokeStaticMethod(mysqlType, Constant.GET_BY_JDBC_TYPE, sqlType)
+            val invokeMethod = MethodUtils.invokeMethod(invokeStaticMethod, Constant.GET_NAME)
+            var params = ""
+            if  (StringUtils.lowerCase(invokeMethod as String) == "varchar") {
+                params = "(255)"
+            }
+            return "$invokeMethod$params"
         } catch (e: Exception) {
             throw RuntimeException(e)
         }
@@ -51,19 +62,11 @@ class MemSqlDialect : Dialect() {
     }
 
     override fun getSqlTypeStringByJavaClass(clazz: Class<*>?): String {
-        try {
-            return MethodUtils.invokeMethod(MethodUtils.invokeStaticMethod(mysqlType, Constant.GET_BY_JDBC_TYPE, getSqlTypeByJavaClass(clazz)), Constant.GET_CLASS_NAME) as String
-        } catch (e: Exception) {
-            throw RuntimeException(e)
-        }
+        return getSqlTypeString(getSqlTypeByJavaClass(clazz))
     }
 
     override fun getSqlTypeStringByJavaClassName(javaClassName: String?): String {
-        try {
-            return MethodUtils.invokeMethod(MethodUtils.invokeStaticMethod(mysqlType, Constant.GET_BY_JDBC_TYPE, getSqlTypeByJavaClassName(javaClassName)), Constant.GET_CLASS_NAME) as String
-        } catch (e: Exception) {
-            throw RuntimeException(e)
-        }
+        return getSqlTypeString(getSqlTypeByJavaClassName(javaClassName))
     }
 
     override fun getSqlTypeStringBySqlType(sqlType: Int?, typeDialect: MutableMap<Int, String>?): String {

@@ -12,12 +12,8 @@ import com.wzq.core.sync.SyncOpreator;
 import com.wzq.manager.impl.SimpleMappingManager;
 import com.wzq.mapping.Mapping;
 import com.wzq.target.manager.AbstractTargetX;
-import com.wzq.target.manager.TargetParameter;
 import com.wzq.target.manager.impl.TargetManagerImpl;
-import com.wzq.target.memsql.MemSqlTarget;
-import com.wzq.target.memsql.MemSqlTargetParameter;
-import net.minidev.json.JSONObject;
-import net.minidev.json.JSONValue;
+import com.wzq.target.mysql.MySqlTargetParameter;
 import net.minidev.json.parser.ParseException;
 import org.junit.Test;
 
@@ -38,7 +34,7 @@ public class SyncTest {
 //        SimpleTarget ot = new SimpleTarget();
         // 创建一个连接对象
         TargetManagerImpl targetManager = new TargetManagerImpl();
-        MemSqlTargetParameter root = new MemSqlTargetParameter("root", "", "jdbc:mysql://192.168.220.128:3307/test", "com.mysql.cj.jdbc.Driver");
+        MySqlTargetParameter root = new MySqlTargetParameter("root", "", "jdbc:mysql://192.168.56.128:3307/test", "com.mysql.cj.jdbc.Driver");
         AbstractTargetX it = targetManager.get(root);
         AbstractTargetX rIt = targetManager.get(root);
         AbstractTargetX ot = targetManager.get(root);

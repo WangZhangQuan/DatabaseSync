@@ -322,6 +322,48 @@ public class SimpleMappingSqlGenerator extends MappingSqlGenerator {
         return NULL;
     }
 
+    public Sql generateReverseRelationSelectSql(String itName, String[] selectItColumns, String[] whereColumns, String... otNames) {
+        return generateReverseRelationSelectSql(itName, selectItColumns, MapUtils.mapFromO(Arrays.asList(whereColumns), PlaceholderValue.getInstance()), otNames);
+    }
+
+    public Sql generateReverseRelationSelectSql(String itName, String[] selectItColumns, Map<String, Object> whereColumn, String... otNames) {
+        if (validateItNameAndOtNames(itName, otNames)) {
+            String[] allItColumns = mapping.getAllItColumns(itName, otNames);
+            Set<String> aicSet = new HashSet<String>(Arrays.asList(allItColumns));
+            Set<String> sicSet = new HashSet<String>(Arrays.asList(selectItColumns));
+            aicSet.retainAll(sicSet);
+            if (!aicSet.isEmpty()) { // 判断是否存在读取的字段
+                Map<String, String[]> otColumns = mapping.getOtColumns(itName, aicSet.toArray(new String[aicSet.size()]), otNames);
+                String[] aiwcs = mapping.getAllItWhereColumns(itName, otNames);
+                Set<String> aiwcSet = new HashSet<String>(Arrays.asList(aiwcs));
+                Set<String> ks = whereColumn.keySet();
+                Set<String> wcSet = new HashSet<String>(Arrays.asList(ks.toArray(new String[ks.size()])));
+                aiwcSet.retainAll(wcSet);
+                Map<String, ColumnMapping[]> otWhereColumns = null;
+                if (!aiwcSet.isEmpty()) {
+                    otWhereColumns = mapping.getOtWhereMappingColumns(itName, aiwcSet.toArray(new String[aiwcSet.size()]), otNames);
+                }
+                Set<Map.Entry<String, String[]>> entries = otColumns.entrySet();
+                Sql sql = null;
+                MappingSqlGenerator rg = getReverseGenerater();
+                for (Map.Entry<String, String[]> entry : entries) {
+                    ColumnMapping[] cwcs = null;
+                    if (otWhereColumns != null) {
+                        cwcs = otWhereColumns.get(entry.getKey());
+                    }
+                    if (cwcs == null) {
+                        cwcs = new ColumnMapping[0];
+                    }
+                    //TODO 改造成级联查询
+
+//                    sqls.add(rg.generateSelectSql(entry.getKey(), entry.getValue(), reverseValues(cwcs, whereColumn), itName));
+                }
+                return sql;
+            }
+        }
+        return null;
+    }
+
     public Sql generateCreateTableSql(String itName, String[] createItColumns, Dialect dialect, String... otNames) {
         if (validateItNameAndOtNames(itName, otNames)) {
             String[] allItColumns = mapping.getAllItColumns(itName, otNames);

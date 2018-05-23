@@ -15,7 +15,7 @@ public class SqlExecutorCommandArgs extends CommandArgs {
     public SqlExecutorCommandArgs(Sql sql) {
         ArrayList<Sql> sqls = new ArrayList<Sql>();
         sqls.add(sql);
-        this.sqls = this.sqls;
+        this.sqls = sqls;
     }
 
     public SqlExecutorCommandArgs() {

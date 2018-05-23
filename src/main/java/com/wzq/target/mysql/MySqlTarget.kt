@@ -1,11 +1,8 @@
-package com.wzq.target.memsql
+package com.wzq.target.mysql
 
-import com.mysql.cj.jdbc.DatabaseMetaData
 import com.wzq.command.SqlExecutorCommandArgs
 import com.wzq.command.SqlGeneratorCommandArgs
 import com.wzq.core.command.Command
-import com.wzq.core.command.CommandArgs
-import com.wzq.core.command.Opreator
 import com.wzq.core.structure.Structure
 import com.wzq.mapping.Mapping
 import com.wzq.sql.structure.ColumnStructure
@@ -17,12 +14,20 @@ import com.wzq.target.manager.AbstractTargetX
 import com.wzq.target.manager.TargetManager
 import com.wzq.target.manager.TargetParameter
 import java.sql.Connection
+import java.util.concurrent.locks.ReentrantLock
 
-class MemSqlTarget(targetManager: TargetManager, connection: Connection, override var targetParameter: TargetParameter) : AbstractTargetX(connection) {
+class MySqlTarget(targetManager: TargetManager, connection: Connection, override var targetParameter: TargetParameter) : AbstractTargetX(connection) {
+
 
     var targetManager: TargetManager = targetManager
 
-    var dialect = MemSqlDialect()
+    var dialect = MySqlDialect()
+
+    private var lock = ReentrantLock()
+
+    init {
+        connection.autoCommit = false
+    }
 
     override fun getStructure(tables: Array<out String>?, mapping: Mapping?): Structure {
         validateClosed()
@@ -41,7 +46,7 @@ class MemSqlTarget(targetManager: TargetManager, connection: Connection, overrid
                 tableStructure.columns = ArrayList()
                 val columns = metaData.getColumns(connection.catalog, "%", table, "%")
                 while (columns.next()) {
-                    tableStructure.columns.add(ColumnStructure(columns.getString(MemSqlDialect.Constant.COLUMN_NAME), dialect.getSqlTypeString(columns.getInt(MemSqlDialect.Constant.DATA_TYPE)), PlaceholderValue.PLACEHOLDER_VALUE))
+                    tableStructure.columns.add(ColumnStructure(columns.getString(MySqlDialect.Constant.COLUMN_NAME), dialect.getSqlTypeString(columns.getInt(MySqlDialect.Constant.DATA_TYPE)), PlaceholderValue.PLACEHOLDER_VALUE))
                 }
                 mappingStructure.tables.add(tableStructure)
             }
@@ -51,7 +56,8 @@ class MemSqlTarget(targetManager: TargetManager, connection: Connection, overrid
 
     override fun commit() {
         validateClosed()
-        // memsql 无需批量操作，性能一样
+        // 触发提交
+        connection.commit()
     }
 
     override fun execCUD(command: Command?) {
@@ -79,12 +85,25 @@ class MemSqlTarget(targetManager: TargetManager, connection: Connection, overrid
                     }
                 }
                 prepareStatement.execute()
+
+                lock.lock()
+                try {
+                    // 查看是否满足提交操作
+                    val incrementAndGet = batchOffset.incrementAndGet()
+                    if (incrementAndGet >= batch.get()) {
+                        connection.commit()
+                        batchOffset.compareAndSet(incrementAndGet, 0)
+                    }
+                } finally {
+                    lock.unlock()
+                }
             }
         }
     }
 
     override fun close() {
         validateClosed()
+        connection.commit()
         this.targetManager.recovery(this as AbstractTargetX)
     }
 
@@ -99,8 +118,8 @@ class MemSqlTarget(targetManager: TargetManager, connection: Connection, overrid
         } else {
             throw RuntimeException("Parameter types that are not supported: " + ca::class.java)
         }
-        // 反向sql合并
-        TODO("执行查询")
+
+        TODO("实现查询")
     }
 
     override fun getDialect(): Dialect {

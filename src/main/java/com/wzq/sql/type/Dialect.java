@@ -56,4 +56,8 @@ public class Dialect {
         return dialect.get(sqlType);
     }
 
+    public String limit(long start, long limit) {
+        return "LIMIT " + start + ", " + limit;
+    }
+
 }

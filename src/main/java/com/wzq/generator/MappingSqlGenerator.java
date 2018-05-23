@@ -155,6 +155,17 @@ public abstract class MappingSqlGenerator implements Generator {
     public abstract List<Sql> generateReverseSelectSql(String itName, String[] selectItColumns, Map<String, Object> whereColumn, String... otNames);
 
     /**
+     * 生成他方级联查询sql
+     *
+     * @param itName          己方表名
+     * @param selectItColumns 影响的己方字段
+     * @param whereColumn     他方过滤字段和值
+     * @param otNames         他方表名
+     * @return String类型的SQL
+     */
+    public abstract Sql generateReverseRelationSelectSql(String itName, String[] selectItColumns, Map<String, Object> whereColumn, String... otNames);
+
+    /**
      * 生成己方创建表SQL
      *
      * @param itName          己方表名

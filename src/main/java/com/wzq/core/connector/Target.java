@@ -6,11 +6,12 @@ import com.wzq.mapping.Mapping;
 import com.wzq.sql.type.Dialect;
 
 import java.io.Closeable;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public interface Target extends Closeable {
     Dialect getDialect();
-    int getBatch();
-    void setBatch(int batch);
+    AtomicInteger getBatch();
+    AtomicInteger getBatchOffset();
     Structure getStructure(String[] tables, Mapping mapping);
     void commit();
     void execCUD(Command command);
