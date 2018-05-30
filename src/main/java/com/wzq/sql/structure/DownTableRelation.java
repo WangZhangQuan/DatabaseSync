@@ -1,6 +1,7 @@
 package com.wzq.sql.structure;
 
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class DownTableRelation implements Iterable<DownTableRelation> {
 
@@ -67,5 +68,54 @@ public class DownTableRelation implements Iterable<DownTableRelation> {
         }
         allDtrs.removeAll(dtrs);
         dtrs.clear();
+    }
+
+    public List<DownTableRelation> findRootDownTableRelations(String rootDtrName) {
+        List<DownTableRelation> dtrsx = new ArrayList<DownTableRelation>();
+        findRootDownTableRelations(rootDtrName, this, dtrsx);
+        return dtrsx;
+    }
+
+    private static void findRootDownTableRelations(String rootDtrName, DownTableRelation root, List<DownTableRelation> dtrsx) {
+        for (DownTableRelation dtr : root.dtrs) {
+            if (dtr.ts.getName().equals(rootDtrName)) {
+                dtrsx.add(dtr);
+            }
+        }
+        for (DownTableRelation dtr : root.dtrs) {
+            findRootDownTableRelations(rootDtrName, dtr, dtrsx);
+        }
+    }
+
+    public boolean containsDownTableRelation(String dtrName) {
+        return containsDownTableRelation(dtrName, this);
+    }
+
+    private static boolean containsDownTableRelation(String dtrName, DownTableRelation root) {
+        boolean flag = false;
+        for (DownTableRelation dtr : root.dtrs) {
+            if (dtr.ts.getName().equals(dtrName)) {
+                flag = true;
+            }
+            flag = containsDownTableRelation(dtrName, dtr);
+            if (flag) {
+                return flag;
+            }
+        }
+        return flag;
+    }
+
+    public static List<DownTableRelation> topDownTableRelations(List<DownTableRelation> dtrsx) {
+        List<DownTableRelation> dtrs = new CopyOnWriteArrayList<DownTableRelation>(dtrsx);
+        for (DownTableRelation dtr : dtrsx) {
+            for (DownTableRelation dtrx : dtrs) {
+                if (!dtr.ts.getName().equals(dtrx.ts.getName())) {
+                    if (containsDownTableRelation(dtrx.ts.getName(), dtr)) {
+                        dtrs.remove(dtrx);
+                    }
+                }
+            }
+        }
+        return dtrs;
     }
 }

@@ -4,6 +4,7 @@ import com.wzq.generator.MappingSqlGenerator;
 import com.wzq.mapping.ColumnMapping;
 import com.wzq.mapping.Mapping;
 import com.wzq.mapping.TableMapping;
+import com.wzq.sql.structure.DownTableRelation;
 import com.wzq.sql.type.Dialect;
 import com.wzq.sql.type.SqlTypes;
 import com.wzq.sql.type.UnsupportSqlType;
@@ -14,6 +15,8 @@ import com.wzq.util.ColumnComparator;
 import com.wzq.util.KeyValue;
 import com.wzq.util.ListUtils;
 import com.wzq.util.MapUtils;
+import net.minidev.json.JSONArray;
+import net.minidev.json.JSONObject;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.NullValue;
 import net.sf.jsqlparser.expression.StringValue;
@@ -354,10 +357,30 @@ public class SimpleMappingSqlGenerator extends MappingSqlGenerator {
                     if (cwcs == null) {
                         cwcs = new ColumnMapping[0];
                     }
-                    //TODO 改造成级联查询
+
 
 //                    sqls.add(rg.generateSelectSql(entry.getKey(), entry.getValue(), reverseValues(cwcs, whereColumn), itName));
                 }
+
+                //TODO 改造成级联查询
+                DownTableRelation odtr = mapping.getODownTableRelation(mapping.getMainOt());
+                List<DownTableRelation> dtrs = new ArrayList<DownTableRelation>();
+                for (String otName : otNames) {
+                    dtrs.addAll(odtr.findRootDownTableRelations(otName));
+                }
+                // 获取顶级的级联关系
+                dtrs = DownTableRelation.topDownTableRelations(dtrs);
+                if (dtrs.size() > 1) {
+                    JSONArray ja = new JSONArray();
+                    for (DownTableRelation dtr : dtrs) {
+                        ja.add(dtr.getTs().getName());
+                    }
+                    throw new RuntimeException("Loss of table correlation: " + ja.toJSONString());
+                }
+                DownTableRelation dtr = dtrs.get(0);
+
+                // TODO
+
                 return sql;
             }
         }
