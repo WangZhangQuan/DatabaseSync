@@ -365,7 +365,8 @@ public class SimpleMappingSqlGenerator extends MappingSqlGenerator {
                 //TODO 改造成级联查询
                 DownTableRelation odtr = mapping.getODownTableRelation(mapping.getMainOt());
                 List<DownTableRelation> dtrs = new ArrayList<DownTableRelation>();
-                for (String otName : otNames) {
+                Set<String> otns = otColumns.keySet();
+                for (String otName : otns) {
                     dtrs.addAll(odtr.findRootDownTableRelations(otName));
                 }
                 // 获取顶级的级联关系

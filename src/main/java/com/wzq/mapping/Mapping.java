@@ -480,7 +480,7 @@ public class Mapping implements SwapBothSidesAble, Cloneable, Serializable {
 
 
     private boolean isValidate() {
-        if (tableMaps != null && tableMaps.size() > 0) {
+        if (tableMaps != null && !tableMaps.isEmpty()) {
             return true;
         } else {
             return false;
@@ -522,6 +522,7 @@ public class Mapping implements SwapBothSidesAble, Cloneable, Serializable {
     }
 
     private static List<TableStructure> findDownITableStructures(Mapping mapping, String itName) {
+        // TODO 通过映射到同一外表的表字段确定关系 待改
         MappingStructure ims = mapping.getIMappingStructure();
         String[] allItWhereColumns = mapping.getAllItWhereColumns(itName, mapping.getAllOtNames(itName));
         List<TableStructure> tss = new ArrayList<TableStructure>();
@@ -575,6 +576,37 @@ public class Mapping implements SwapBothSidesAble, Cloneable, Serializable {
         return dtr;
     }
 
+    public Map<String, Set<String>> findOtColumnByItColumn(String itName, String itColumn) {
+        return findIotColumnByOtherColumn(itName, itColumn, true);
+    }
+
+    public Map<String, Set<String>> findItColumnByOtColumn(String otName, String otColumn) {
+        return findIotColumnByOtherColumn(otName, otColumn, false);
+    }
+
+    private Map<String, Set<String>> findIotColumnByOtherColumn(String tName, String tColumn, boolean iot) {
+        Map<String, Set<String>> result = new HashMap<String, Set<String>>();
+        if (isValidate()) {
+            for (TableMapping tm : tableMaps) {
+                List<ColumnMapping> columnMaps = tm.getColumnMaps();
+
+                if (columnMaps != null && !columnMaps.isEmpty() && (iot ? tm.getIt().equals(tName) : tm.getOt().equals(tName))) {
+                    for (ColumnMapping cm : columnMaps) {
+                        if (iot ? cm.getIc().equals(tColumn) : cm.getOc().equals(tColumn)) {
+                            String tn = iot ? tm.getOt() : tm.getIt();
+                            Set<String> cs = result.get(tn);
+                            if (cs == null) {
+                                cs = new HashSet<String>();
+                                result.put(tn, cs);
+                            }
+                            cs.add(iot ? cm.getOc() : cm.getIc());
+                        }
+                    }
+                }
+            }
+        }
+        return result;
+    }
 
     private static boolean validateTableName(String name) {
         if (name != null && !"".equals(name)) {

@@ -10,6 +10,7 @@ import com.wzq.generator.MappingSqlGenerator;
 import com.wzq.generator.impl.Sql;
 import com.wzq.manager.impl.SimpleMappingManager;
 import com.wzq.mapping.Mapping;
+import com.wzq.sql.structure.DownTableRelation;
 import com.wzq.sql.structure.MappingStructure;
 import com.wzq.sql.value.PlaceholderValue;
 import com.wzq.util.FreemarkerUtil;
@@ -133,21 +134,8 @@ public class TemplateMain {
         Structure intersection1 = msc.intersection(iMappingStructure);
         long t2 = System.currentTimeMillis();
 
-        MappingStructure iMappingStructure1 = mapping.getOMappingStructure((MappingStructure) intersection1);
-
-        SimpleConnector simpleConnector = new SimpleConnector(null, null, null);
-
-        SyncManager syncManager = new SyncManager(new SyncContext(smm, simpleConnector));
-        syncManager.addListener(new SyncListener() {
-            public void preSync(SyncOpreator syncOpreator, SyncContext syncContext) {
-                System.out.println("同步前置事件");
-            }
-
-            public void afterSync(SyncOpreator syncOpreator, SyncContext syncContext) {
-                System.out.println("同步后置事件");
-            }
-        });
-        syncManager.sync();
+        DownTableRelation odtr = mapping.getODownTableRelation(otNames[0]);
+        DownTableRelation idtr = mapping.getIDownTableRelation(itName);
 
         System.out.println("开始：" + t1 + "，结束：" + t2 + "，耗时：" + (t2 - t1));
 

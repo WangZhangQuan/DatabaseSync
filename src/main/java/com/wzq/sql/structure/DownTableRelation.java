@@ -1,5 +1,7 @@
 package com.wzq.sql.structure;
 
+import com.wzq.mapping.Mapping;
+
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -41,6 +43,11 @@ public class DownTableRelation implements Iterable<DownTableRelation> {
     }
 
     public boolean contains(DownTableRelation dtr) {
+
+        if (this.ts.getName().equals(dtr.ts.getName())) {
+            return true;
+        }
+
         for (DownTableRelation allDtr : allDtrs) {
             if (allDtr.getTs().getName().equals(dtr.getTs().getName())) {
                 return true;
@@ -117,5 +124,20 @@ public class DownTableRelation implements Iterable<DownTableRelation> {
             }
         }
         return dtrs;
+    }
+
+    private String toRelationString(String joinString) {
+        StringBuilder buf = new StringBuilder();
+        buf.append(ts.getName());
+        for (DownTableRelation dtr : dtrs) {
+            buf
+                    .append(" ")
+                    .append(joinString)
+                    .append(" ")
+                    .append(dtr.ts.getName())
+                    .append(" ON ");
+            // TODO 关联映射字段
+        }
+        return buf.toString();
     }
 }

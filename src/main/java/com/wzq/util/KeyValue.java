@@ -11,10 +11,6 @@ public class KeyValue<K, V> {
         this.value = value;
     }
 
-    public KeyValue(List<Object> ks, List<Object> vs) {
-
-    }
-
     public K getKey() {
         return key;
     }
